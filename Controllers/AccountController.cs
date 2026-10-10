@@ -15,8 +15,7 @@ public sealed class AccountController : Controller
         _signInManager = signInManager;
     }
 
-    [Route("login")]
-    [HttpGet]
+    [HttpGet("login")]
     public IActionResult Login(string? returnUrl = null)
     {
         var model = new LoginViewModel
@@ -27,8 +26,7 @@ public sealed class AccountController : Controller
         return View(model);
     }
 
-    [Route("login")]
-    [HttpPost]
+    [HttpPost("login")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(
         LoginViewModel model)

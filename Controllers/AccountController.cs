@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AuthServer_P1.Controllers;
 
+[Route("account")]
 public sealed class AccountController : Controller
 {
     private readonly SignInManager<IdentityUser> _signInManager;
@@ -14,6 +15,7 @@ public sealed class AccountController : Controller
         _signInManager = signInManager;
     }
 
+    [Route("login")]
     [HttpGet]
     public IActionResult Login(string? returnUrl = null)
     {
@@ -25,6 +27,7 @@ public sealed class AccountController : Controller
         return View(model);
     }
 
+    [Route("login")]
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(

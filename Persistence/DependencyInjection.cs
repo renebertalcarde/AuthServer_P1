@@ -23,6 +23,21 @@ public static class DependencyInjection
             {
                 options.UseEntityFrameworkCore()
                     .UseDbContext<AuthDbContext>();
+            })
+            .AddServer(options =>
+            {
+                options.SetAuthorizationEndpointUris("/connect/authorize");
+                options.SetTokenEndpointUris("/connect/token");
+
+                options.AllowAuthorizationCodeFlow();
+                options.AllowRefreshTokenFlow();
+
+                options.AddDevelopmentEncryptionCertificate();
+                options.AddDevelopmentSigningCertificate();
+
+                options.UseAspNetCore()
+                    .EnableAuthorizationEndpointPassthrough()
+                    .EnableTokenEndpointPassthrough();
             });
 
         return services;

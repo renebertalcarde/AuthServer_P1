@@ -1,5 +1,6 @@
 using AuthServer_P1.Persistence;
 using LogixSys.AuthServer.Persistence;
+using Microsoft.AspNetCore.Identity;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,12 +16,20 @@ builder.Services.AddPersistence(builder.Configuration);
 // Keep your existing service registrations here,
 // including controllers and API services.
 
+builder.Services
+    .AddIdentity<IdentityUser, IdentityRole>()
+    .AddEntityFrameworkStores<AuthDbContext>()
+    .AddDefaultTokenProviders();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+    await IdentitySeeder.SeedAsync(
+      app.Services,
+      app.Configuration);
 }
 
 // Register the initial OpenIddict client.

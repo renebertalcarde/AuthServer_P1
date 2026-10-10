@@ -60,6 +60,7 @@ public static class OpenIddictSeeder
         descriptor.Requirements.Add(
             OpenIddictConstants.Requirements.Features
                 .ProofKeyForCodeExchange);
+               
 
         // Save the client in the database.
         await applicationManager.CreateAsync(descriptor);

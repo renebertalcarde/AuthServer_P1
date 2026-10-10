@@ -1,5 +1,6 @@
 ﻿using AuthServer_P1.Persistence;
 using Microsoft.EntityFrameworkCore;
+using OpenIddict.Abstractions;
 
 namespace LogixSys.AuthServer.Persistence;
 
@@ -34,6 +35,11 @@ public static class DependencyInjection
 
                 options.AddDevelopmentEncryptionCertificate();
                 options.AddDevelopmentSigningCertificate();
+
+                options.RegisterScopes(
+                    OpenIddictConstants.Scopes.Email,
+                    OpenIddictConstants.Scopes.Profile,
+                    OpenIddictConstants.Scopes.OfflineAccess);
 
                 options.UseAspNetCore()
                     .EnableAuthorizationEndpointPassthrough()

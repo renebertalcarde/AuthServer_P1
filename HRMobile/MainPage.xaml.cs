@@ -1,24 +1,60 @@
-﻿namespace HRMobile
+﻿using HRMobile.Services;
+
+namespace HRMobile;
+
+public partial class MainPage : ContentPage
 {
-    public partial class MainPage : ContentPage
+    private readonly IAuthService _authService;
+
+    public MainPage(IAuthService authService)
     {
-        int count = 0;
+        InitializeComponent();
+        _authService = authService;
+    }
 
-        public MainPage()
+    private async void OnLoginClicked(
+        object sender, EventArgs e)
+    {
+        LoginButton.IsEnabled = false;
+        StatusLabel.Text = "Connecting to AuthServer...";
+
+        try
         {
-            InitializeComponent();
-        }
+            var success = await _authService.LoginAsync();
 
-        private void OnCounterClicked(object? sender, EventArgs e)
+            if (success)
+            {
+                StatusLabel.Text = "Signed in successfully.";
+                LoginButton.IsVisible = false;
+                LogoutButton.IsVisible = true;
+            }
+        }
+        catch (TaskCanceledException)
         {
-            count++;
-
-            if (count == 1)
-                CounterBtn.Text = $"Clicked {count} time";
-            else
-                CounterBtn.Text = $"Clicked {count} times";
-
-            SemanticScreenReader.Announce(CounterBtn.Text);
+            StatusLabel.Text = "Sign-in was cancelled.";
         }
+        catch (Exception ex)
+        {
+            await DisplayAlertAsync(
+                "Sign-in failed",
+                ex.Message,
+                "OK");
+
+            StatusLabel.Text = "You are not signed in.";
+        }
+        finally
+        {
+            LoginButton.IsEnabled = true;
+        }
+    }
+
+    private async void OnLogoutClicked(
+        object sender, EventArgs e)
+    {
+        await _authService.LogoutAsync();
+
+        StatusLabel.Text = "You are not signed in.";
+        LoginButton.IsVisible = true;
+        LogoutButton.IsVisible = false;
     }
 }

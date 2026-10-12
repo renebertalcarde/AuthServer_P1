@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using HRMobile.Services;
+using Microsoft.Extensions.Logging;
 
 namespace HRMobile
 {
@@ -18,6 +19,10 @@ namespace HRMobile
 #if DEBUG
     		builder.Logging.AddDebug();
 #endif
+            builder.Services.AddSingleton<IAuthService, AuthService>();
+
+            builder.Services.AddHttpClient<IAuthService, AuthService>();
+            builder.Services.AddTransient<MainPage>();
 
             return builder.Build();
         }

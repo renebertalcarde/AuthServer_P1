@@ -1,4 +1,4 @@
-using AuthServer_P1.Persistence;
+using AuthServer.Persistence;
 using LogixSys.AuthServer.Persistence;
 using Microsoft.AspNetCore.Identity;
 

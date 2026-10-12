@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
 
-namespace AuthServer_P1.Controllers;
+namespace AuthServer.Controllers;
 
 [Route("connect")]
 public sealed class AuthorizationController : Controller

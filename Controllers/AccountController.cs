@@ -1,8 +1,8 @@
-﻿using AuthServer_P1.Models;
+﻿using AuthServer.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
-namespace AuthServer_P1.Controllers;
+namespace AuthServer.Controllers;
 
 [Route("account")]
 public sealed class AccountController : Controller

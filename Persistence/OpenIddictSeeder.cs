@@ -1,6 +1,6 @@
 ﻿using OpenIddict.Abstractions;
 
-namespace AuthServer_P1.Persistence;
+namespace AuthServer.Persistence;
 
 public static class OpenIddictSeeder
 {

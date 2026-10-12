@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace AuthServer_P1.Persistence;
+namespace AuthServer.Persistence;
 
 public sealed class AuthDbContext
     : IdentityDbContext<IdentityUser>

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace AuthServer_P1.Controllers
+namespace AuthServer.Controllers
 {
     [ApiController]
     [Route("[controller]")]

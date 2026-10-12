@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace AuthServer_P1.Models;
+namespace AuthServer.Models;
 
 public sealed class LoginViewModel
 {

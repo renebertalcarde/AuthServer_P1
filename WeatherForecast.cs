@@ -1,4 +1,4 @@
-namespace AuthServer_P1
+namespace AuthServer
 {
     public class WeatherForecast
     {

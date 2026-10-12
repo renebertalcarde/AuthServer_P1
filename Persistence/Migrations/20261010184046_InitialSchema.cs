@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace AuthServer_P1.Persistence.Migrations
+namespace AuthServer.Persistence.Migrations
 {
     /// <inheritdoc />
     public partial class InitialSchema : Migration

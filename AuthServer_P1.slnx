@@ -1,3 +1,6 @@
 <Solution>
+  <Project Path="../HRMobile/HRMobile.csproj" Id="40ebeef4-eb9f-4342-94e1-9eb116451993">
+    <Deploy Solution="Debug|*" />
+  </Project>
   <Project Path="AuthServer.csproj" />
 </Solution>

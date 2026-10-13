@@ -16,7 +16,7 @@ namespace HRMobile;
         Intent.CategoryDefault,
         Intent.CategoryBrowsable
     },
-    DataScheme = "com.companyname.hrmobile.auth",
+    DataScheme = "com.logixsys.hrmobile.auth",
     DataHost = "callback")]
 public class WebAuthenticatorCallbackActivity
     : WebAuthenticatorCallbackActivityBase

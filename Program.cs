@@ -21,6 +21,38 @@ builder.Services
     .AddEntityFrameworkStores<AuthDbContext>()
     .AddDefaultTokenProviders();
 
+
+
+
+//var certPath = Path.Combine(
+//    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+//    "mkcert-authserver",
+//    "localhost.pem");
+
+//var keyPath = Path.Combine(
+//    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
+//    "mkcert-authserver",
+//    "localhost-key.pem");
+
+//var certificate =
+//    System.Security.Cryptography.X509Certificates.X509Certificate2
+//        .CreateFromPemFile(certPath, keyPath);
+
+//builder.WebHost.ConfigureKestrel(options =>
+//{
+//    options.ListenLocalhost(7284, listenOptions =>
+//    {
+//        listenOptions.UseHttps(certificate);
+//    });
+//});
+//Console.WriteLine($"Subject: {certificate.Subject}");
+//Console.WriteLine($"Has private key: {certificate.HasPrivateKey}");
+//Console.WriteLine($"Valid from: {certificate.NotBefore}");
+//Console.WriteLine($"Valid until: {certificate.NotAfter}");
+
+
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

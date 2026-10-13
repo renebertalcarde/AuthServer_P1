@@ -34,7 +34,7 @@ public static class OpenIddictSeeder
 
         // Replace this URI with your actual mobile callback URI.
         descriptor.RedirectUris.Add(
-            new Uri("com.example.auth://callback"));
+            new Uri("com.companyname.hrmobile.auth://callback"));
 
         // Allow Authorization Code Flow.
         descriptor.Permissions.Add(

@@ -10,7 +10,7 @@ public static class OAuthConfiguration
         "authserver-p1-mobile";
 
     public const string RedirectUri =
-        "com.example.auth://callback";
+        "com.companyname.hrmobile.auth://callback";
 
     public const string Scope =
         "openid profile email";

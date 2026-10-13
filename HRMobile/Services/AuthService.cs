@@ -21,108 +21,136 @@ public sealed class AuthService : IAuthService
     public async Task<bool> LoginAsync(
         CancellationToken cancellationToken = default)
     {
-        var discovery = await _httpClient.GetFromJsonAsync<DiscoveryDocument>(
-            OAuthConfiguration.DiscoveryEndpoint,
-            cancellationToken);
-
-        if (discovery is null ||
-            string.IsNullOrWhiteSpace(discovery.AuthorizationEndpoint) ||
-            string.IsNullOrWhiteSpace(discovery.TokenEndpoint))
+        try
         {
-            throw new InvalidOperationException(
-                "The AuthServer discovery document is incomplete.");
-        }
-
-        var verifier = CreateRandomValue();
-        var challenge = CreateCodeChallenge(verifier);
-        var state = CreateRandomValue();
-
-        var parameters = new Dictionary<string, string>
-        {
-            ["client_id"] = OAuthConfiguration.ClientId,
-            ["redirect_uri"] = OAuthConfiguration.RedirectUri,
-            ["response_type"] = "code",
-            ["scope"] = OAuthConfiguration.Scope,
-            ["state"] = state,
-            ["code_challenge"] = challenge,
-            ["code_challenge_method"] = "S256"
-        };
-
-        var authorizationUrl =
-            discovery.AuthorizationEndpoint + "?" +
-            string.Join("&", parameters.Select(p =>
-                $"{Uri.EscapeDataString(p.Key)}=" +
-                $"{Uri.EscapeDataString(p.Value)}"));
-
-        var callback = await WebAuthenticator.Default.AuthenticateAsync(
-            new Uri(authorizationUrl),
-            new Uri(OAuthConfiguration.RedirectUri));
-
-        cancellationToken.ThrowIfCancellationRequested();
-
-        if (!callback.Properties.TryGetValue("state", out var returnedState) ||
-            !CryptographicOperations.FixedTimeEquals(
-                Encoding.UTF8.GetBytes(state),
-                Encoding.UTF8.GetBytes(returnedState)))
-        {
-            throw new InvalidOperationException(
-                "OAuth state validation failed.");
-        }
-
-        if (!callback.Properties.TryGetValue("code", out var code) ||
-            string.IsNullOrWhiteSpace(code))
-        {
-            throw new InvalidOperationException(
-                "AuthServer did not return an authorization code.");
-        }
-
-        using var tokenResponse = await _httpClient.PostAsync(
-            discovery.TokenEndpoint,
-            new FormUrlEncodedContent(new Dictionary<string, string>
+            DiscoveryDocument discovery;
+            try
             {
-                ["grant_type"] = "authorization_code",
+
+                discovery = await _httpClient.GetFromJsonAsync<DiscoveryDocument>(
+                    OAuthConfiguration.DiscoveryEndpoint,
+                    cancellationToken);
+
+                if (discovery is null ||
+                    string.IsNullOrWhiteSpace(discovery.AuthorizationEndpoint) ||
+                    string.IsNullOrWhiteSpace(discovery.TokenEndpoint))
+                {
+                    throw new InvalidOperationException(
+                        "The AuthServer discovery document is incomplete.");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"HTTP error: {ex}");
+
+                for (var inner = ex.InnerException;
+                     inner is not null;
+                     inner = inner.InnerException)
+                {
+                    System.Diagnostics.Debug.WriteLine(
+                        $"Inner error: {inner.GetType().FullName}: {inner.Message}");
+                }
+
+                throw new InvalidOperationException(
+                    "Failed to launch the system browser for login. [Discovery]", ex);
+            }
+
+            var verifier = CreateRandomValue();
+            var challenge = CreateCodeChallenge(verifier);
+            var state = CreateRandomValue();
+
+            var parameters = new Dictionary<string, string>
+            {
                 ["client_id"] = OAuthConfiguration.ClientId,
                 ["redirect_uri"] = OAuthConfiguration.RedirectUri,
-                ["code"] = code,
-                ["code_verifier"] = verifier
-            }),
-            cancellationToken);
+                ["response_type"] = "code",
+                ["scope"] = OAuthConfiguration.Scope,
+                ["state"] = state,
+                ["code_challenge"] = challenge,
+                ["code_challenge_method"] = "S256"
+            };
 
-        var responseBody = await tokenResponse.Content.ReadAsStringAsync(
-            cancellationToken);
+            var authorizationUrl =
+                discovery.AuthorizationEndpoint + "?" +
+                string.Join("&", parameters.Select(p =>
+                    $"{Uri.EscapeDataString(p.Key)}=" +
+                    $"{Uri.EscapeDataString(p.Value)}"));
 
-        if (!tokenResponse.IsSuccessStatusCode)
+            var callback = await WebAuthenticator.Default.AuthenticateAsync(
+                new Uri(authorizationUrl),
+                new Uri(OAuthConfiguration.RedirectUri));
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (!callback.Properties.TryGetValue("state", out var returnedState) ||
+                !CryptographicOperations.FixedTimeEquals(
+                    Encoding.UTF8.GetBytes(state),
+                    Encoding.UTF8.GetBytes(returnedState)))
+            {
+                throw new InvalidOperationException(
+                    "OAuth state validation failed.");
+            }
+
+            if (!callback.Properties.TryGetValue("code", out var code) ||
+                string.IsNullOrWhiteSpace(code))
+            {
+                throw new InvalidOperationException(
+                    "AuthServer did not return an authorization code.");
+            }
+
+            using var tokenResponse = await _httpClient.PostAsync(
+                discovery.TokenEndpoint,
+                new FormUrlEncodedContent(new Dictionary<string, string>
+                {
+                    ["grant_type"] = "authorization_code",
+                    ["client_id"] = OAuthConfiguration.ClientId,
+                    ["redirect_uri"] = OAuthConfiguration.RedirectUri,
+                    ["code"] = code,
+                    ["code_verifier"] = verifier
+                }),
+                cancellationToken);
+
+            var responseBody = await tokenResponse.Content.ReadAsStringAsync(
+                cancellationToken);
+
+            if (!tokenResponse.IsSuccessStatusCode)
+            {
+                throw new InvalidOperationException(
+                    $"Token exchange failed " +
+                    $"({(int)tokenResponse.StatusCode}): {responseBody}");
+            }
+
+            var tokens = JsonSerializer.Deserialize<TokenResponse>(
+                responseBody);
+
+            if (tokens is null ||
+                string.IsNullOrWhiteSpace(tokens.AccessToken))
+            {
+                throw new InvalidOperationException(
+                    "AuthServer returned no access token.");
+            }
+
+            await SecureStorage.Default.SetAsync(
+                AccessTokenKey, tokens.AccessToken);
+
+            if (!string.IsNullOrWhiteSpace(tokens.RefreshToken))
+            {
+                await SecureStorage.Default.SetAsync(
+                    RefreshTokenKey, tokens.RefreshToken);
+            }
+
+            if (!string.IsNullOrWhiteSpace(tokens.IdToken))
+            {
+                await SecureStorage.Default.SetAsync(
+                    IdTokenKey, tokens.IdToken);
+            }
+
+        }
+        catch (Exception ex)
         {
             throw new InvalidOperationException(
-                $"Token exchange failed " +
-                $"({(int)tokenResponse.StatusCode}): {responseBody}");
+                "Login failed. See inner exception for details.", ex);
         }
-
-        var tokens = JsonSerializer.Deserialize<TokenResponse>(
-            responseBody);
-
-        if (tokens is null ||
-            string.IsNullOrWhiteSpace(tokens.AccessToken))
-        {
-            throw new InvalidOperationException(
-                "AuthServer returned no access token.");
-        }
-
-        await SecureStorage.Default.SetAsync(
-            AccessTokenKey, tokens.AccessToken);
-
-        if (!string.IsNullOrWhiteSpace(tokens.RefreshToken))
-        {
-            await SecureStorage.Default.SetAsync(
-                RefreshTokenKey, tokens.RefreshToken);
-        }
-
-        if (!string.IsNullOrWhiteSpace(tokens.IdToken))
-        {
-            await SecureStorage.Default.SetAsync(
-                IdTokenKey, tokens.IdToken);
-        }
-
         return true;
     }
 

@@ -1,5 +1,14 @@
 ﻿{
   "$schema": "https://json.schemastore.org/launchsettings.json",
+  "iisSettings": {
+    "windowsAuthentication": false,
+    "anonymousAuthentication": true,
+    "iis": {
+      "applicationUrl": "https://localhost:7284",
+      "sslPort": 7284,
+      "siteName": "AuthServer"
+    }
+  },
   "profiles": {
     "http": {
       "commandName": "Project",
@@ -18,6 +27,15 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
+    },
+    "IIS": {
+      "commandName": "IIS",
+      "launchUrl": "https://localhost:7284",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "launchBrowser": true,
+      "applicationUrl": "https://localhost:7284"
     }
   }
 }

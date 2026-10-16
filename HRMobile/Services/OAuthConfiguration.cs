@@ -4,13 +4,13 @@ public static class OAuthConfiguration
 {
     // Android emulator -> development computer.
     public const string Authority =
-        "https://192.168.1.4:7284";
+        "https://192.168.68.103:7284";
 
     public const string ClientId =
         "authserver-p1-mobile";
 
     public const string RedirectUri =
-        "com.logixsys.hrmobile.auth://callback";
+        "com.hrmobile.auth://callback";
 
     public const string Scope =
         "openid profile email";

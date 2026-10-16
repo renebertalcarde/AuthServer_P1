@@ -1,6 +1,7 @@
 using AuthServer.Persistence;
 using LogixSys.AuthServer.Persistence;
 using Microsoft.AspNetCore.Identity;
+using System.Security.Cryptography.X509Certificates;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,36 +22,23 @@ builder.Services
     .AddEntityFrameworkStores<AuthDbContext>()
     .AddDefaultTokenProviders();
 
+// Load PFX securely (password from env or secrets)
+var pfxPath = @"C:\dev\authserver-certs\authserver.pfx";
+var pfxPassword = builder.Configuration["AuthServer:CertificatePassword"]
+                  ?? Environment.GetEnvironmentVariable("AUTHSERVER_CERT_PASSWORD");
 
+var certificate = new X509Certificate2(
+    pfxPath,
+    pfxPassword,
+    X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet);
 
-
-//var certPath = Path.Combine(
-//    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-//    "mkcert-authserver",
-//    "localhost.pem");
-
-//var keyPath = Path.Combine(
-//    Environment.GetFolderPath(Environment.SpecialFolder.UserProfile),
-//    "mkcert-authserver",
-//    "localhost-key.pem");
-
-//var certificate =
-//    System.Security.Cryptography.X509Certificates.X509Certificate2
-//        .CreateFromPemFile(certPath, keyPath);
-
-//builder.WebHost.ConfigureKestrel(options =>
-//{
-//    options.ListenLocalhost(7284, listenOptions =>
-//    {
-//        listenOptions.UseHttps(certificate);
-//    });
-//});
-//Console.WriteLine($"Subject: {certificate.Subject}");
-//Console.WriteLine($"Has private key: {certificate.HasPrivateKey}");
-//Console.WriteLine($"Valid from: {certificate.NotBefore}");
-//Console.WriteLine($"Valid until: {certificate.NotAfter}");
-
-
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(7284, listen =>
+    {
+        listen.UseHttps(certificate);
+    });
+});
 
 
 var app = builder.Build();

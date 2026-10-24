@@ -47,9 +47,9 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
-    //await IdentitySeeder.SeedAsync(
-    //  app.Services,
-    //  app.Configuration);
+    await IdentitySeeder.SeedAsync(
+      app.Services,
+      app.Configuration);
 }
 
 // Register the initial OpenIddict client.

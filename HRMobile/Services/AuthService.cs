@@ -98,20 +98,32 @@ public sealed class AuthService : IAuthService
                     "AuthServer did not return an authorization code.");
             }
 
+            var requestContent = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                ["grant_type"] = "authorization_code",
+                ["client_id"] = OAuthConfiguration.ClientId,
+                ["redirect_uri"] = OAuthConfiguration.RedirectUri,
+                ["code"] = code,
+                ["code_verifier"] = verifier
+            });
+
+            System.Diagnostics.Debug.WriteLine($"Token endpoint: {discovery.TokenEndpoint}");
+            try
+            {
+                // Log the outgoing request body for debugging (may contain sensitive data).
+                System.Diagnostics.Debug.WriteLine("Token request body: " + await requestContent.ReadAsStringAsync());
+            }
+            catch { }
+
             using var tokenResponse = await _httpClient.PostAsync(
                 discovery.TokenEndpoint,
-                new FormUrlEncodedContent(new Dictionary<string, string>
-                {
-                    ["grant_type"] = "authorization_code",
-                    ["client_id"] = OAuthConfiguration.ClientId,
-                    ["redirect_uri"] = OAuthConfiguration.RedirectUri,
-                    ["code"] = code,
-                    ["code_verifier"] = verifier
-                }),
+                requestContent,
                 cancellationToken);
 
             var responseBody = await tokenResponse.Content.ReadAsStringAsync(
                 cancellationToken);
+
+            System.Diagnostics.Debug.WriteLine($"Token exchange HTTP {(int)tokenResponse.StatusCode} {tokenResponse.ReasonPhrase}; response body length: {responseBody?.Length ?? 0}");
 
             if (!tokenResponse.IsSuccessStatusCode)
             {

@@ -3,8 +3,9 @@
 public static class OAuthConfiguration
 {
     // Android emulator -> development computer.
-    public const string Authority =
-        "https://192.168.68.103:7284";
+    public const string Authority = 
+        //"https://10.0.2.2:7284";
+    "https://192.168.68.103:7284";
 
     public const string ClientId =
         "authserver-p1-mobile";

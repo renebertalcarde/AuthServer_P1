@@ -37,8 +37,7 @@ public static class DependencyInjection
                 options.AddDevelopmentSigningCertificate();
 
                 options.UseAspNetCore()
-                    .EnableAuthorizationEndpointPassthrough()
-                    .EnableTokenEndpointPassthrough();
+                    .EnableAuthorizationEndpointPassthrough();
 
                 options.RegisterScopes(
                     OpenIddictConstants.Scopes.Email,

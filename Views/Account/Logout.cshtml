@@ -1,0 +1,16 @@
+﻿@model AuthServer.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Sign out";
+}
+
+<h2>Sign out</h2>
+
+<p>Do you want to sign out of your account?</p>
+
+<form asp-controller="Account"
+      asp-action="LogoutConfirmed"
+      method="post">
+    @Html.AntiForgeryToken()
+    <button type="submit">Sign out</button>
+</form>
+```

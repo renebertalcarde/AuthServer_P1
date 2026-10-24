@@ -12,6 +12,7 @@ public sealed class AuthService : IAuthService
     private const string IdTokenKey = "hr_id_token";
 
     private readonly HttpClient _httpClient;
+    private DiscoveryDocument discovery;
 
     public AuthService(HttpClient httpClient)
     {
@@ -23,7 +24,6 @@ public sealed class AuthService : IAuthService
     {
         try
         {
-            DiscoveryDocument discovery;
             try
             {
 
@@ -169,13 +169,29 @@ public sealed class AuthService : IAuthService
     public Task<string?> GetAccessTokenAsync() =>
         SecureStorage.Default.GetAsync(AccessTokenKey);
 
-    public Task LogoutAsync()
+    public async Task LogoutAsync()
     {
-        SecureStorage.Default.Remove(AccessTokenKey);
-        SecureStorage.Default.Remove(RefreshTokenKey);
-        SecureStorage.Default.Remove(IdTokenKey);
+        try
+        {
+            var logoutUrl = "https://your-auth-server/Account/Logout";
 
-        return Task.CompletedTask;
+            await WebAuthenticator.Default.AuthenticateAsync(
+                new WebAuthenticatorOptions
+                {
+                    Url = new Uri(logoutUrl),
+                    CallbackUrl = new Uri("com.example.auth://callback")
+                });
+        }
+        catch (TaskCanceledException)
+        {
+            // The user cancelled the browser flow.
+        }
+        finally
+        {
+            SecureStorage.Default.Remove(AccessTokenKey);
+            SecureStorage.Default.Remove(RefreshTokenKey);
+            SecureStorage.Default.Remove(IdTokenKey);
+        }
     }
 
     private static string CreateRandomValue()

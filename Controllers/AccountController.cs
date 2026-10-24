@@ -76,12 +76,18 @@ public sealed class AccountController : Controller
         return View(model);
     }
 
-    [HttpPost]
+    [HttpGet("logout")]
+    public IActionResult Logout()
+    {
+        return View();
+    }
+
+    [HttpPost("logout")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Logout()
+    public async Task<IActionResult> LogoutConfirmed()
     {
         await _signInManager.SignOutAsync();
 
-        return RedirectToAction("Login");
+        return RedirectToAction(nameof(Login));
     }
 }

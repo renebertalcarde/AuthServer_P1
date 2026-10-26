@@ -8,7 +8,7 @@
 <p>Do you want to sign out of your account?</p>
 
 <form asp-controller="Account"
-      asp-action="LogoutConfirmed"
+      asp-action="Logout"
       method="post">
     @Html.AntiForgeryToken()
 
@@ -20,4 +20,3 @@
 
     <button type="submit">Sign out</button>
 </form>
-```

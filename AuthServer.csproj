@@ -9,9 +9,13 @@
 
   <ItemGroup>
     <Compile Remove="HRMobile\**" />
+    <Compile Remove="OAuthConfig\**" />
     <Content Remove="HRMobile\**" />
+    <Content Remove="OAuthConfig\**" />
     <EmbeddedResource Remove="HRMobile\**" />
+    <EmbeddedResource Remove="OAuthConfig\**" />
     <None Remove="HRMobile\**" />
+    <None Remove="OAuthConfig\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,6 +36,10 @@
     <PackageReference Include="OpenIddict.Client.DataProtection" Version="7.7.1" />
     <PackageReference Include="OpenIddict.Client.AspNetCore" Version="7.7.1" />
     <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="OAuthConfig\OAuthConfig.csproj" />
   </ItemGroup>
 
 </Project>

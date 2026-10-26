@@ -31,63 +31,68 @@ public sealed class AccountController : Controller
     public async Task<IActionResult> Login(
         LoginViewModel model)
     {
-        if (!ModelState.IsValid)
+        if (ModelState.IsValid)
         {
-            return View(model);
-        }
+            var result = await _signInManager.PasswordSignInAsync(
+                model.UserName,
+                model.Password,
+                model.RememberMe,
+                lockoutOnFailure: true);
 
-        var result = await _signInManager.PasswordSignInAsync(
-            model.UserName,
-            model.Password,
-            model.RememberMe,
-            lockoutOnFailure: true);
-
-        if (result.Succeeded)
-        {
-            // Return only to a local URL.
-            if (!string.IsNullOrWhiteSpace(model.ReturnUrl) &&
-                Url.IsLocalUrl(model.ReturnUrl))
+            if (result.Succeeded)
             {
-                return Redirect(model.ReturnUrl);
+                // Return only to a local URL.
+                if (!string.IsNullOrWhiteSpace(model.ReturnUrl) &&
+                    Url.IsLocalUrl(model.ReturnUrl))
+                {
+                    return Redirect(model.ReturnUrl);
+                }
+
+                return RedirectToAction("Index", "Home");
             }
 
-            return RedirectToAction("Index", "Home");
-        }
-
-        if (result.IsLockedOut)
-        {
-            ModelState.AddModelError(
-                string.Empty,
-                "Your account is temporarily locked. Please try again later.");
-        }
-        else if (result.IsNotAllowed)
-        {
-            ModelState.AddModelError(
-                string.Empty,
-                "You are not currently allowed to sign in.");
-        }
-        else
-        {
-            ModelState.AddModelError(
-                string.Empty,
-                "Invalid username or password.");
+            if (result.IsLockedOut)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "Your account is temporarily locked. Please try again later.");
+            }
+            else if (result.IsNotAllowed)
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "You are not currently allowed to sign in.");
+            }
+            else
+            {
+                ModelState.AddModelError(
+                    string.Empty,
+                    "Invalid username or password.");
+            }
         }
 
         return View(model);
     }
 
     [HttpGet("logout")]
-    public IActionResult Logout()
+    public IActionResult Logout(LogoutViewModel? model = null)
     {
-        return View();
+        return View(model);
     }
 
     [HttpPost("logout")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> LogoutConfirmed()
+    public async Task<IActionResult> Logout()
     {
-        await _signInManager.SignOutAsync();
-
-        return RedirectToAction(nameof(Login));
+        try
+        {
+            await _signInManager.SignOutAsync();
+            return Redirect(OAuthConfig.OAuthConfiguration.RedirectUri);
+        }
+        catch(Exception ex)
+        {
+            ModelState.AddModelError("signoutfailed", ex.Message);
+            return View(new LogoutViewModel { Ex = ex });
+        }
     }
 }

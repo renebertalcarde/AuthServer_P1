@@ -1,4 +1,7 @@
 <Solution>
   <Project Path="AuthServer.csproj" />
-  <Project Path="HRMobile/HRMobile.csproj" />
+  <Project Path="HRMobile/HRMobile.csproj">
+    <Deploy Solution="Debug|*" />
+  </Project>
+  <Project Path="OAuthConfig/OAuthConfig.csproj" />
 </Solution>

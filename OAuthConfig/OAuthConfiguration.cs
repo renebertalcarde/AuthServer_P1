@@ -1,4 +1,4 @@
-﻿namespace HRMobile.Services;
+﻿namespace OAuthConfig;
 
 public static class OAuthConfiguration
 {

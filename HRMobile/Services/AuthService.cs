@@ -1,4 +1,5 @@
-﻿using System.Net.Http.Json;
+﻿using OAuthConfig;
+using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -12,8 +13,7 @@ public sealed class AuthService : IAuthService
     private const string IdTokenKey = "hr_id_token";
 
     private readonly HttpClient _httpClient;
-    private DiscoveryDocument discovery;
-
+    
     public AuthService(HttpClient httpClient)
     {
         _httpClient = httpClient;
@@ -24,9 +24,10 @@ public sealed class AuthService : IAuthService
     {
         try
         {
+            DiscoveryDocument discovery;
+
             try
             {
-
                 discovery = await _httpClient.GetFromJsonAsync<DiscoveryDocument>(
                     OAuthConfiguration.DiscoveryEndpoint,
                     cancellationToken);
@@ -173,13 +174,13 @@ public sealed class AuthService : IAuthService
     {
         try
         {
-            var logoutUrl = "https://your-auth-server/Account/Logout";
+            var logoutUrl = new Uri(new(OAuthConfiguration.Authority), "/Account/Logout");
 
             await WebAuthenticator.Default.AuthenticateAsync(
                 new WebAuthenticatorOptions
                 {
-                    Url = new Uri(logoutUrl),
-                    CallbackUrl = new Uri("com.example.auth://callback")
+                    Url = logoutUrl,
+                    CallbackUrl = new(OAuthConfiguration.RedirectUri),
                 });
         }
         catch (TaskCanceledException)

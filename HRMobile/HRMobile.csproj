@@ -92,4 +92,8 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.12" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\OAuthConfig\OAuthConfig.csproj" />
+	</ItemGroup>
+
 </Project>

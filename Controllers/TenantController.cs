@@ -3,12 +3,15 @@ using AuthServer.Persistence;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using OpenIddict.Validation.AspNetCore;
 
 namespace AuthServer.Controllers;
 
 [ApiController]
 [Route("api/tenant")]
-[Authorize(Policy = "ActiveTenant")]
+[Authorize(
+    AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme,
+    Policy = "ActiveTenant")]
 public sealed class TenantController : ControllerBase
 {
     private readonly AuthDbContext _dbContext;

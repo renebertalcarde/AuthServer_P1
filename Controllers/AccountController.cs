@@ -107,8 +107,9 @@ public sealed class AccountController : Controller
 
         if (!ModelState.IsValid)
         {
+            var returnUrl = model.ReturnUrl;
             model = await BuildCompanySelectionModelAsync();
-            model.ReturnUrl = IsLocalReturnUrl(model.ReturnUrl) ? model.ReturnUrl : null;
+            model.ReturnUrl = IsLocalReturnUrl(returnUrl) ? returnUrl : null;
             return View("SelectCompany", model);
         }
 

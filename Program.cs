@@ -1,4 +1,6 @@
 using AuthServer.Persistence;
+using AuthServer.Security;
+using Microsoft.AspNetCore.Authorization;
 using LogixSys.AuthServer.Persistence;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Cryptography.X509Certificates;
@@ -13,6 +15,18 @@ builder.Services.AddOpenApi();
 
 // Register database and OpenIddict Core services.
 builder.Services.AddPersistence(builder.Configuration);
+
+// Tenant-protected endpoints must have a selected tenant and an active
+// user-company membership. This policy is opt-in; existing endpoints remain unchanged.
+builder.Services.AddScoped<IAuthorizationHandler, ActiveTenantHandler>();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("ActiveTenant", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.AddRequirements(new ActiveTenantRequirement());
+    });
+});
 
 // Keep your existing service registrations here,
 // including controllers and API services.

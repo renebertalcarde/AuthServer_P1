@@ -21,6 +21,7 @@ builder.Services.AddPersistence(builder.Configuration);
 builder.Services.AddOpenIddict()
     .AddValidation(options =>
     {
+        options.AddAudiences("authserver-p1-api");
         options.UseLocalServer();
         options.UseAspNetCore();
     });

@@ -1,4 +1,5 @@
-﻿using OpenIddict.Abstractions;
+﻿using OAuthConfig;
+using OpenIddict.Abstractions;
 
 namespace AuthServer.Persistence;
 
@@ -41,7 +42,7 @@ public static class OpenIddictSeeder
 
         // Replace this URI with your actual mobile callback URI.
         descriptor.RedirectUris.Add(
-            new Uri("com.logixsys.hrmobile.auth://callback"));
+            new Uri(OAuthConfiguration.RedirectUri));
 
         // Allow Authorization Code Flow.
         descriptor.Permissions.Add(

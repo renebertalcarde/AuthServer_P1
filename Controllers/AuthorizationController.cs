@@ -75,6 +75,12 @@ public sealed class AuthorizationController : Controller
 
         principal.SetScopes(request.GetScopes());
 
+        // Only tokens explicitly requested for the tenant API receive its audience.
+        if (principal.HasScope("tenant_api"))
+        {
+            principal.SetResources("authserver-p1-api");
+        }
+
         principal.SetDestinations(claim => claim.Type switch
         {
             OpenIddictConstants.Claims.Subject =>

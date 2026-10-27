@@ -16,6 +16,15 @@ builder.Services.AddOpenApi();
 // Register database and OpenIddict Core services.
 builder.Services.AddPersistence(builder.Configuration);
 
+// Validate access tokens issued by this server for protected API endpoints.
+// This adds resource-server validation without changing the OAuth endpoints or grants.
+builder.Services.AddOpenIddict()
+    .AddValidation(options =>
+    {
+        options.UseLocalServer();
+        options.UseAspNetCore();
+    });
+
 // Tenant-protected endpoints must have a selected tenant and an active
 // user-company membership. This policy is opt-in; existing endpoints remain unchanged.
 builder.Services.AddScoped<IAuthorizationHandler, ActiveTenantHandler>();

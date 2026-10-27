@@ -1,0 +1,39 @@
+@model AuthServer.Models.CompanySelectionViewModel
+
+@{
+    ViewData["Title"] = "Select company";
+}
+
+<h1>Select company</h1>
+<p>Select the company you want to work with for this session.</p>
+
+<form asp-controller="Account" asp-action="SelectCompany" method="post">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="ReturnUrl" />
+
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    @if (Model.Companies.Count == 0)
+    {
+        <p class="text-danger">
+            Your account does not have an active company membership.
+            Contact your administrator to be assigned to a company.
+        </p>
+    }
+    else
+    {
+        <div>
+            <label asp-for="CompanyId"></label>
+            <select asp-for="CompanyId">
+                <option value="0">-- Select a company --</option>
+                @foreach (var company in Model.Companies)
+                {
+                    <option value="@company.Id">@company.Name (@company.Code)</option>
+                }
+            </select>
+            <span asp-validation-for="CompanyId" class="text-danger"></span>
+        </div>
+
+        <button type="submit">Continue</button>
+    }
+</form>

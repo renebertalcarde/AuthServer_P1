@@ -73,6 +73,9 @@ if (app.Environment.IsDevelopment())
     await IdentitySeeder.SeedAsync(
       app.Services,
       app.Configuration);
+    // Seed the initial company and link the existing "gong" user.
+    // This runs only in Development and does not create or modify Identity credentials.
+    await TenantSeeder.SeedAsync(app.Services);
 }
 
 // Register the initial OpenIddict client.

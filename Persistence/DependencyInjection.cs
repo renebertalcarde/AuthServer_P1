@@ -42,7 +42,8 @@ public static class DependencyInjection
                 options.RegisterScopes(
                     OpenIddictConstants.Scopes.Email,
                     OpenIddictConstants.Scopes.Profile,
-                    OpenIddictConstants.Scopes.OfflineAccess);
+                    OpenIddictConstants.Scopes.OfflineAccess,
+                    "tenant_api");
             });
 
         return services;

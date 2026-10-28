@@ -1,4 +1,6 @@
 using AuthServer.Persistence;
+using AuthServer.Security;
+using Microsoft.AspNetCore.Authorization;
 using LogixSys.AuthServer.Persistence;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Cryptography.X509Certificates;
@@ -8,11 +10,35 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddRazorPages();
+
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 
 // Register database and OpenIddict Core services.
 builder.Services.AddPersistence(builder.Configuration);
+
+// Validate access tokens issued by this server for protected API endpoints.
+// This adds resource-server validation without changing the OAuth endpoints or grants.
+builder.Services.AddOpenIddict()
+    .AddValidation(options =>
+    {
+        options.AddAudiences("authserver-p1-api");
+        options.UseLocalServer();
+        options.UseAspNetCore();
+    });
+
+// Tenant-protected endpoints must have a selected tenant and an active
+// user-company membership. This policy is opt-in; existing endpoints remain unchanged.
+builder.Services.AddScoped<IAuthorizationHandler, ActiveTenantHandler>();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("ActiveTenant", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+        policy.AddRequirements(new ActiveTenantRequirement());
+    });
+});
 
 // Keep your existing service registrations here,
 // including controllers and API services.
@@ -49,6 +75,9 @@ if (app.Environment.IsDevelopment())
     await IdentitySeeder.SeedAsync(
       app.Services,
       app.Configuration);
+    // Seed the initial company and link the existing "gong" user.
+    // This runs only in Development and does not create or modify Identity credentials.
+    await TenantSeeder.SeedAsync(app.Services);
 }
 
 // Register the initial OpenIddict client.
@@ -66,5 +95,6 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapDefaultControllerRoute();
+app.MapRazorPages();
 
 app.Run();

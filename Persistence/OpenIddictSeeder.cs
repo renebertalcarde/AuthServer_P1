@@ -1,4 +1,5 @@
-﻿using OpenIddict.Abstractions;
+﻿using OAuthConfig;
+using OpenIddict.Abstractions;
 
 namespace AuthServer.Persistence;
 
@@ -20,6 +21,13 @@ public static class OpenIddictSeeder
 
         if (existingApplication is not null)
         {
+            // Preserve the existing client's redirect URIs and permissions while
+            // granting the dedicated tenant API scope.
+            var existingDescriptor = new OpenIddictApplicationDescriptor();
+            await applicationManager.PopulateAsync(existingDescriptor, existingApplication);
+            existingDescriptor.Permissions.Add(
+                OpenIddictConstants.Permissions.Prefixes.Scope + "tenant_api");
+            await applicationManager.UpdateAsync(existingApplication, existingDescriptor);
             return;
         }
 
@@ -34,7 +42,7 @@ public static class OpenIddictSeeder
 
         // Replace this URI with your actual mobile callback URI.
         descriptor.RedirectUris.Add(
-            new Uri("com.logixsys.hrmobile.auth://callback"));
+            new Uri(OAuthConfiguration.RedirectUri));
 
         // Allow Authorization Code Flow.
         descriptor.Permissions.Add(
@@ -55,6 +63,9 @@ public static class OpenIddictSeeder
 
         descriptor.Permissions.Add(
             OpenIddictConstants.Permissions.Scopes.Email);
+
+        descriptor.Permissions.Add(
+            OpenIddictConstants.Permissions.Prefixes.Scope + "tenant_api");
 
         // Require PKCE for this public client.
         descriptor.Requirements.Add(

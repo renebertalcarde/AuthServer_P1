@@ -1,4 +1,4 @@
-﻿namespace HRMobile.Services;
+namespace HRMobile.Services;
 
 public interface IAuthService
 {
@@ -6,6 +6,8 @@ public interface IAuthService
         CancellationToken cancellationToken = default);
 
     Task<string?> GetAccessTokenAsync();
+
+    Task<string?> GetIdTokenAsync();
 
     Task LogoutAsync();
 }

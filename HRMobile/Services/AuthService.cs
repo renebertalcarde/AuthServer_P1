@@ -1,4 +1,4 @@
-﻿using OAuthConfig;
+using OAuthConfig;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
@@ -109,12 +109,6 @@ public sealed class AuthService : IAuthService
             });
 
             System.Diagnostics.Debug.WriteLine($"Token endpoint: {discovery.TokenEndpoint}");
-            try
-            {
-                // Log the outgoing request body for debugging (may contain sensitive data).
-                System.Diagnostics.Debug.WriteLine("Token request body: " + await requestContent.ReadAsStringAsync());
-            }
-            catch { }
 
             using var tokenResponse = await _httpClient.PostAsync(
                 discovery.TokenEndpoint,
@@ -158,17 +152,32 @@ public sealed class AuthService : IAuthService
                     IdTokenKey, tokens.IdToken);
             }
 
+            // OpenID Connect sign-in should return an ID token when "openid"
+            // is requested. Fail clearly rather than silently continuing without it.
+            if (OAuthConfiguration.Scope
+                    .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                    .Contains("openid", StringComparer.Ordinal) &&
+                string.IsNullOrWhiteSpace(tokens.IdToken))
+            {
+                throw new InvalidOperationException(
+                    "AuthServer returned no ID token. Verify that the token response " +
+                    "contains id_token and that the openid scope is configured.");
+            }
         }
         catch (Exception ex)
         {
             throw new InvalidOperationException(
                 "Login failed. See inner exception for details.", ex);
         }
+
         return true;
     }
 
     public Task<string?> GetAccessTokenAsync() =>
         SecureStorage.Default.GetAsync(AccessTokenKey);
+
+    public Task<string?> GetIdTokenAsync() =>
+        SecureStorage.Default.GetAsync(IdTokenKey);
 
     public async Task LogoutAsync()
     {

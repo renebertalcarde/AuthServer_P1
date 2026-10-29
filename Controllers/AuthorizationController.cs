@@ -72,6 +72,7 @@ public sealed class AuthorizationController : Controller
 
         principal.SetClaim("tenant_id", membership.CompanyId.ToString());
         principal.SetClaim("tenant_code", membership.Company.Code);
+        principal.SetClaim("tenant_name", membership.Company.Name);
 
         principal.SetScopes(request.GetScopes());
 
@@ -112,6 +113,13 @@ public sealed class AuthorizationController : Controller
                 new[]
                 {
                     OpenIddictConstants.Destinations.AccessToken
+                },
+
+            "tenant_name" =>
+                new[]
+                {
+                    OpenIddictConstants.Destinations.AccessToken,
+                    OpenIddictConstants.Destinations.IdentityToken
                 },
 
             _ => Array.Empty<string>()

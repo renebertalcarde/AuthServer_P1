@@ -11,7 +11,24 @@ public partial class AppShell : Shell
         _authService = authService;
         _authService.IdentityChanged += OnIdentityChanged;
         Loaded += async (_, _) => await RefreshIdentityAsync();
+        Navigating += OnShellNavigating;
     }
+
+    private async void OnShellNavigating(object? sender, ShellNavigatingEventArgs e)
+    {
+        var target = e.Target.Location.OriginalString;
+        if (!target.Contains("EmployeesPage", StringComparison.OrdinalIgnoreCase))
+            return;
+
+        var idToken = await _authService.GetIdTokenAsync();
+        if (!string.IsNullOrWhiteSpace(idToken))
+            return;
+
+        // Stop the protected page from appearing, then return to Home.
+        e.Cancel();
+        await GoToAsync("//MainPage");
+    }
+
     private void OnIdentityChanged(object? sender, EventArgs e) =>
         MainThread.BeginInvokeOnMainThread(async () => await RefreshIdentityAsync());
     private async Task RefreshIdentityAsync()

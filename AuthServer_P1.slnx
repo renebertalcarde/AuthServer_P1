@@ -3,5 +3,5 @@
   <Project Path="HRMobile/HRMobile.csproj">
     <Deploy Solution="Debug|*" />
   </Project>
-  <Project Path="OAuthConfig/OAuthConfig.csproj" />
+  <Project Path="SharedLib/SharedLib.csproj" />
 </Solution>

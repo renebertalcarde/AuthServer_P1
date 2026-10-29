@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui" xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml" x:Class="HRMobile.Pages.MainPage" Title="Home">
+    <Grid Padding="24">
+        <VerticalStackLayout Spacing="16" VerticalOptions="Center">
+            <Label Text="Welcome to HRMobile" FontSize="28" FontAttributes="Bold" />
+            <Label x:Name="StatusLabel" Text="You are not signed in." />
+            <Button x:Name="LoginButton" Text="Sign in" Clicked="OnLoginClicked" />
+            <Button x:Name="LogoutButton" Text="Sign out" Clicked="OnLogoutClicked" IsVisible="False" />
+        </VerticalStackLayout>
+    </Grid>
+</ContentPage>

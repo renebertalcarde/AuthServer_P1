@@ -1,4 +1,4 @@
-﻿namespace OAuthConfig;
+﻿namespace SharedLib;
 
 public static class OAuthConfiguration
 {

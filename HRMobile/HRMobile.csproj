@@ -93,7 +93,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\OAuthConfig\OAuthConfig.csproj" />
+	  <ProjectReference Include="..\SharedLib\SharedLib.csproj" />
 	</ItemGroup>
 
 </Project>

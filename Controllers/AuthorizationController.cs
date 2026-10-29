@@ -70,8 +70,12 @@ public sealed class AuthorizationController : Controller
             OpenIddictConstants.Claims.Subject,
             userId);
 
+        // Expose the Identity username as a standard OIDC profile claim.
+        principal.SetClaim("preferred_username", user.UserName ?? userId);
+
         principal.SetClaim("tenant_id", membership.CompanyId.ToString());
         principal.SetClaim("tenant_code", membership.Company.Code);
+        principal.SetClaim("tenant_name", membership.Company.Name);
 
         principal.SetScopes(request.GetScopes());
 
@@ -108,10 +112,26 @@ public sealed class AuthorizationController : Controller
                     OpenIddictConstants.Destinations.IdentityToken
                 },
 
+            "preferred_username"
+                when claim.Subject.HasScope(
+                    OpenIddictConstants.Scopes.Profile) =>
+                new[]
+                {
+                    OpenIddictConstants.Destinations.AccessToken,
+                    OpenIddictConstants.Destinations.IdentityToken
+                },
+
             "tenant_id" or "tenant_code" =>
                 new[]
                 {
                     OpenIddictConstants.Destinations.AccessToken
+                },
+
+            "tenant_name" =>
+                new[]
+                {
+                    OpenIddictConstants.Destinations.AccessToken,
+                    OpenIddictConstants.Destinations.IdentityToken
                 },
 
             _ => Array.Empty<string>()

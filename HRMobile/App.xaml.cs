@@ -1,3 +1,4 @@
+using HRMobile.Pages;
 namespace HRMobile;
 
 public partial class App : Application

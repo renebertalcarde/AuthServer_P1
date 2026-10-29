@@ -1,7 +1,8 @@
 using System.Text;
 using System.Text.Json;
 using HRMobile.Services;
-namespace HRMobile;
+using SharedLib.Extensions;
+namespace HRMobile.Pages;
 public partial class ProfilePage : ContentPage
 {
     private readonly IAuthService _authService;
@@ -30,7 +31,7 @@ public partial class ProfilePage : ContentPage
             payload = payload.PadRight(payload.Length + (4 - payload.Length % 4) % 4, '=');
             using var document = JsonDocument.Parse(Encoding.UTF8.GetString(Convert.FromBase64String(payload)));
             var root = document.RootElement;
-            ProfileIdentityLabel.Text = GetClaim(root, "name") ?? GetClaim(root, "preferred_username") ?? GetClaim(root, "unique_name") ?? GetClaim(root, "email") ?? GetClaim(root, "sub") ?? "Signed-in user";
+            ProfileIdentityLabel.Text = root.GetUserName();
             ProfileStatusLabel.Text = "Signed in";
             ProfileClaimsLabel.Text = string.Join(Environment.NewLine, root.EnumerateObject().Select(p => $"{p.Name}: {p.Value}"));
         }
@@ -39,6 +40,4 @@ public partial class ProfilePage : ContentPage
             ProfileStatusLabel.Text = "ID token could not be decoded.";
         }
     }
-    private static string? GetClaim(JsonElement root, string name) =>
-        root.TryGetProperty(name, out var value) ? (value.ValueKind == JsonValueKind.String ? value.GetString() : value.ToString()) : null;
 }

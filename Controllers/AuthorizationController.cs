@@ -114,7 +114,7 @@ public sealed class AuthorizationController : Controller
 
             "preferred_username"
                 when claim.Subject.HasScope(
-                    OpenIddictConstants.Permissions.Scopes.Profile) =>
+                    OpenIddictConstants.Scopes.Profile) =>
                 new[]
                 {
                     OpenIddictConstants.Destinations.AccessToken,

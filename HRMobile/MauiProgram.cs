@@ -1,3 +1,4 @@
+using HRMobile.Pages;
 using HRMobile.Services;
 using Microsoft.Extensions.Logging;
 

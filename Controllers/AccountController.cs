@@ -169,7 +169,7 @@ public sealed class AccountController : Controller
         try
         {
             await _signInManager.SignOutAsync();
-            return Redirect(OAuthConfig.OAuthConfiguration.RedirectUri);
+            return Redirect(SharedLib.OAuthConfiguration.RedirectUri);
         }
         catch (Exception ex)
         {

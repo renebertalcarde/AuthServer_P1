@@ -1,5 +1,5 @@
 using HRMobile.Services;
-namespace HRMobile;
+namespace HRMobile.Pages;
 public partial class MainPage : ContentPage
 {
     private readonly IAuthService _authService;

@@ -1,7 +1,8 @@
+using HRMobile.Services;
+using SharedLib.Extensions;
 using System.Text;
 using System.Text.Json;
-using HRMobile.Services;
-namespace HRMobile;
+namespace HRMobile.Pages;
 public partial class AppShell : Shell
 {
     private readonly IAuthService _authService;
@@ -35,17 +36,14 @@ public partial class AppShell : Shell
         if (!_isSignedIn) { HeaderIdentityLabel.Text = "Not signed in"; return; }
         try
         {
-            var parts = token.Split('.');
+            var parts = token?.Split('.') ?? [];
             if (parts.Length != 3) { HeaderIdentityLabel.Text = "Signed in"; return; }
             var payload = parts[1].Replace('-', '+').Replace('_', '/');
             payload = payload.PadRight(payload.Length + (4 - payload.Length % 4) % 4, '=');
             using var doc = JsonDocument.Parse(Encoding.UTF8.GetString(Convert.FromBase64String(payload)));
             var root = doc.RootElement;
-            var username = GetClaim(root, "preferred_username") ??
-                GetClaim(root, "unique_name") ?? GetClaim(root, "name") ??
-                GetClaim(root, "email") ?? GetClaim(root, "sub") ?? "Signed in";
-            var companyName = GetClaim(root, "tenant_name") ??
-                GetClaim(root, "company_name") ?? GetClaim(root, "tenant_code");
+            var username = root.GetUserName();
+            var companyName = root.GetCompanyName();
 
             HeaderIdentityLabel.Text = string.IsNullOrWhiteSpace(companyName)
                 ? username
@@ -53,7 +51,4 @@ public partial class AppShell : Shell
         }
         catch (Exception ex) when (ex is FormatException or JsonException) { HeaderIdentityLabel.Text = "Signed in"; }
     }
-    private static string? GetClaim(JsonElement root, string name) =>
-        root.TryGetProperty(name, out var value) ? (value.ValueKind == JsonValueKind.String ? value.GetString() : value.ToString()) : null;
-    private async void OnProfileClicked(object sender, EventArgs e) => await GoToAsync("//ProfilePage");
 }

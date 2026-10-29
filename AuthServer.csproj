@@ -10,12 +10,16 @@
   <ItemGroup>
     <Compile Remove="HRMobile\**" />
     <Compile Remove="OAuthConfig\**" />
+    <Compile Remove="SharedLib\**" />
     <Content Remove="HRMobile\**" />
     <Content Remove="OAuthConfig\**" />
+    <Content Remove="SharedLib\**" />
     <EmbeddedResource Remove="HRMobile\**" />
     <EmbeddedResource Remove="OAuthConfig\**" />
+    <EmbeddedResource Remove="SharedLib\**" />
     <None Remove="HRMobile\**" />
     <None Remove="OAuthConfig\**" />
+    <None Remove="SharedLib\**" />
   </ItemGroup>
 
   <ItemGroup>
@@ -39,7 +43,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="OAuthConfig\OAuthConfig.csproj" />
+    <ProjectReference Include="SharedLib\SharedLib.csproj" />
   </ItemGroup>
 
 </Project>

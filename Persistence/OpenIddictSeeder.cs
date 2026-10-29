@@ -1,4 +1,4 @@
-﻿using OAuthConfig;
+﻿using SharedLib;
 using OpenIddict.Abstractions;
 
 namespace AuthServer.Persistence;

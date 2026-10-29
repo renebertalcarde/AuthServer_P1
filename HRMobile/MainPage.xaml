@@ -5,34 +5,59 @@
     x:Class="HRMobile.MainPage"
     Title="HRMobile">
 
-    <VerticalStackLayout
-        Padding="30"
-        Spacing="20"
-        VerticalOptions="Center">
+    <ScrollView>
+        <VerticalStackLayout
+            Padding="30"
+            Spacing="16"
+            VerticalOptions="Center">
 
-        <Label
-            Text="HRMobile"
-            FontSize="32"
-            FontAttributes="Bold"
-            HorizontalOptions="Center" />
+            <Label
+                Text="HRMobile"
+                FontSize="32"
+                FontAttributes="Bold"
+                HorizontalOptions="Center" />
 
-        <Label
-            x:Name="StatusLabel"
-            Text="You are not signed in."
-            FontSize="16"
-            HorizontalOptions="Center"
-            HorizontalTextAlignment="Center" />
+            <Label
+                x:Name="StatusLabel"
+                Text="You are not signed in."
+                FontSize="16"
+                HorizontalOptions="Center"
+                HorizontalTextAlignment="Center" />
 
-        <Button
-            x:Name="LoginButton"
-            Text="Sign in"
-            Clicked="OnLoginClicked" />
+            <Label
+                x:Name="IdentityLabel"
+                Text=""
+                FontSize="20"
+                FontAttributes="Bold"
+                HorizontalOptions="Center"
+                HorizontalTextAlignment="Center"
+                IsVisible="False" />
 
-        <Button
-            x:Name="LogoutButton"
-            Text="Sign out"
-            Clicked="OnLogoutClicked"
-            IsVisible="False" />
+            <Label
+                Text="Identity token claims"
+                FontSize="16"
+                FontAttributes="Bold"
+                IsVisible="False"
+                x:Name="ClaimsHeadingLabel" />
 
-    </VerticalStackLayout>
+            <Label
+                x:Name="ClaimsLabel"
+                Text=""
+                FontSize="13"
+                LineBreakMode="WordWrap"
+                IsVisible="False" />
+
+            <Button
+                x:Name="LoginButton"
+                Text="Sign in"
+                Clicked="OnLoginClicked" />
+
+            <Button
+                x:Name="LogoutButton"
+                Text="Sign out"
+                Clicked="OnLogoutClicked"
+                IsVisible="False" />
+
+        </VerticalStackLayout>
+    </ScrollView>
 </ContentPage>

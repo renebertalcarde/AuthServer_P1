@@ -26,8 +26,15 @@ public partial class AppShell : Shell
             payload = payload.PadRight(payload.Length + (4 - payload.Length % 4) % 4, '=');
             using var doc = JsonDocument.Parse(Encoding.UTF8.GetString(Convert.FromBase64String(payload)));
             var root = doc.RootElement;
-            HeaderIdentityLabel.Text = GetClaim(root, "name") ?? GetClaim(root, "preferred_username") ??
-                GetClaim(root, "unique_name") ?? GetClaim(root, "email") ?? GetClaim(root, "sub") ?? "Signed in";
+            var username = GetClaim(root, "preferred_username") ??
+                GetClaim(root, "unique_name") ?? GetClaim(root, "name") ??
+                GetClaim(root, "email") ?? GetClaim(root, "sub") ?? "Signed in";
+            var companyName = GetClaim(root, "tenant_name") ??
+                GetClaim(root, "company_name") ?? GetClaim(root, "tenant_code");
+
+            HeaderIdentityLabel.Text = string.IsNullOrWhiteSpace(companyName)
+                ? username
+                : $"{username} / {companyName}";
         }
         catch (Exception ex) when (ex is FormatException or JsonException) { HeaderIdentityLabel.Text = "Signed in"; }
     }

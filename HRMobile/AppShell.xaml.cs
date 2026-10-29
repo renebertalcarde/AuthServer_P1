@@ -5,6 +5,7 @@ namespace HRMobile;
 public partial class AppShell : Shell
 {
     private readonly IAuthService _authService;
+    private bool _isSignedIn;
     public AppShell(IAuthService authService)
     {
         InitializeComponent();
@@ -17,14 +18,10 @@ public partial class AppShell : Shell
     private async void OnShellNavigating(object? sender, ShellNavigatingEventArgs e)
     {
         var target = e.Target.Location.OriginalString;
-        if (!target.Contains("EmployeesPage", StringComparison.OrdinalIgnoreCase))
+        if (_isSignedIn || !target.Contains("EmployeesPage", StringComparison.OrdinalIgnoreCase))
             return;
 
-        var idToken = await _authService.GetIdTokenAsync();
-        if (!string.IsNullOrWhiteSpace(idToken))
-            return;
-
-        // Stop the protected page from appearing, then return to Home.
+        // Cancel synchronously so EmployeesPage cannot appear while signed out.
         e.Cancel();
         await GoToAsync("//MainPage");
     }
@@ -34,7 +31,8 @@ public partial class AppShell : Shell
     private async Task RefreshIdentityAsync()
     {
         var token = await _authService.GetIdTokenAsync();
-        if (string.IsNullOrWhiteSpace(token)) { HeaderIdentityLabel.Text = "Not signed in"; return; }
+        _isSignedIn = !string.IsNullOrWhiteSpace(token);
+        if (!_isSignedIn) { HeaderIdentityLabel.Text = "Not signed in"; return; }
         try
         {
             var parts = token.Split('.');

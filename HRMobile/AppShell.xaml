@@ -8,8 +8,8 @@
     <Shell.TitleView>
         <Grid ColumnDefinitions="*,Auto" Padding="8,0" ColumnSpacing="12">
             <VerticalStackLayout Spacing="0" VerticalOptions="Center">
-                <Label Text="HRMobile" FontAttributes="Bold" FontSize="16" />
-                <Label x:Name="HeaderIdentityLabel" Text="Not signed in" FontSize="12" LineBreakMode="TailTruncation" />
+                <Label x:Name="HeaderTitleLabel" FontAttributes="Bold" FontSize="16" />
+                <Label x:Name="HeaderIdentityLabel" FontSize="12" LineBreakMode="TailTruncation" />
             </VerticalStackLayout>
         </Grid>
     </Shell.TitleView>

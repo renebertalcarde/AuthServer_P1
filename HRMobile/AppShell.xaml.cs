@@ -1,5 +1,6 @@
 using HRMobile.Services;
 using SharedLib.Extensions;
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
 namespace HRMobile.Pages;
@@ -14,17 +15,15 @@ public partial class AppShell : Shell
         _authService.IdentityChanged += OnIdentityChanged;
         Loaded += async (_, _) => await RefreshIdentityAsync();
         Navigating += OnShellNavigating;
+        HeaderTitleLabel.Text = GetAppTitle();
     }
 
     private async void OnShellNavigating(object? sender, ShellNavigatingEventArgs e)
     {
-        var target = e.Target.Location.OriginalString;
-        if (_isSignedIn || !target.Contains("EmployeesPage", StringComparison.OrdinalIgnoreCase))
-            return;
-
-        // Cancel synchronously so EmployeesPage cannot appear while signed out.
-        e.Cancel();
-        await GoToAsync("//MainPage");
+        if (!_isSignedIn)
+        {
+            e.Cancel();
+        }
     }
 
     private void OnIdentityChanged(object? sender, EventArgs e) =>
@@ -47,8 +46,22 @@ public partial class AppShell : Shell
 
             HeaderIdentityLabel.Text = string.IsNullOrWhiteSpace(companyName)
                 ? username
-                : $"{username} / {companyName}";
+                : $"{username} | {companyName}";
         }
-        catch (Exception ex) when (ex is FormatException or JsonException) { HeaderIdentityLabel.Text = "Signed in"; }
+        catch (Exception ex) when (ex is FormatException or JsonException) { HeaderIdentityLabel.Text = "Signed-in"; }
+    }
+    private string GetAppTitle()
+    {
+        var assembly = Assembly.GetExecutingAssembly();
+        var titleAttribute = assembly.GetCustomAttribute<AssemblyTitleAttribute>();
+        var appName =
+            assembly?.GetCustomAttribute<AssemblyTitleAttribute>()?.Title ??
+            assembly?.FullName ??
+            "[AppName]";
+        var version = 
+            assembly?.GetName().Version?.ToString() ??
+            "[AppVersion]";
+
+        return $"{appName} v{version}";
     }
 }

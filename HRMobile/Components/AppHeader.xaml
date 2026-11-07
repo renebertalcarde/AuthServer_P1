@@ -1,0 +1,50 @@
+<ContentView
+    x:Class="HRMobile.Components.AppHeader"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <Grid
+        Padding="15,10"
+        BackgroundColor="#263747"
+        ColumnDefinitions="*,Auto">
+
+        <VerticalStackLayout
+            Spacing="2"
+            VerticalOptions="Center">
+
+            <Label
+                Text="{Binding UserName}"
+                FontSize="18"
+                FontAttributes="Bold"
+                TextColor="White" />
+
+            <Label
+                Text="{Binding CompanyName}"
+                FontSize="12"
+                TextColor="LightGray" />
+
+            <Button
+                x:Name="SignInButton"
+                Text="Sign-in"          
+                IsVisible="{Binding IsSignedOut}"
+                Clicked="SignInButton_Clicked"/>
+
+            <Button
+              x:Name="SignOutButton"
+              Text="Sign-out"
+              IsVisible="{Binding IsSignedIn}"
+                Clicked="SignOutButton_Clicked"/>
+
+
+        </VerticalStackLayout>
+
+        <Button
+            Grid.Column="1"
+            Text="☰"
+            TextColor="White"
+            BackgroundColor="Transparent"
+            FontSize="22" />
+
+    </Grid>
+
+</ContentView>

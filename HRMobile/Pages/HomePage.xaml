@@ -1,0 +1,33 @@
+<ContentPage
+    x:Class="HRMobile.Pages.HomePage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:components="clr-namespace:HRMobile.Components">
+
+    <components:AppPageLayout
+        x:Name="PageLayout">
+
+        <components:AppPageLayout.PageContent>
+
+            <VerticalStackLayout Padding="20" Spacing="15">
+
+                <Label
+                    Text="Welcome to HRMobile"
+                    FontSize="24"
+                    FontAttributes="Bold" />
+
+                <Label
+                    Text="Your HR management dashboard."
+                    FontSize="16" />
+
+                <Button
+                    Text="View Employees"
+                    Clicked="OnEmployeesClicked" />
+
+            </VerticalStackLayout>
+
+        </components:AppPageLayout.PageContent>
+
+    </components:AppPageLayout>
+
+</ContentPage>

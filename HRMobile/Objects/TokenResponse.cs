@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace HRMobile.Services;
+namespace HRMobile.Objects;
 
 public sealed class TokenResponse
 {

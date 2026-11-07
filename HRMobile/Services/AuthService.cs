@@ -1,3 +1,4 @@
+using HRMobile.Objects;
 using SharedLib;
 using System.Net.Http.Json;
 using System.Security.Cryptography;

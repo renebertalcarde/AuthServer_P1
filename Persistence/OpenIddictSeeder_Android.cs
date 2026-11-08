@@ -3,7 +3,7 @@ using OpenIddict.Abstractions;
 
 namespace AuthServer.Persistence;
 
-public static class OpenIddictSeeder
+public static class OpenIddictSeeder_Android
 {
     public static async Task SeedAsync(
         IServiceProvider serviceProvider)

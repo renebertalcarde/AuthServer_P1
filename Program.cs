@@ -80,8 +80,9 @@ if (app.Environment.IsDevelopment())
     await TenantSeeder.SeedAsync(app.Services);
 }
 
-// Register the initial OpenIddict client.
-await OpenIddictSeeder.SeedAsync(app.Services);
+// Register the initial OpenIddict clients.
+await OpenIddictSeeder_Android.SeedAsync(app.Services);
+await OpenIddictSeeder_Windows.SeedAsync(app.Services);
 
 // Keep your existing middleware and endpoint configuration here.
 

@@ -1,21 +1,21 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<Shell x:Class="HRMobile.Pages.AppShell"
-       xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
-       xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-       xmlns:local="clr-namespace:HRMobile.Pages"
-       FlyoutBehavior="Disabled"
-       Title="HRMobile">
-    <Shell.TitleView>
-        <Grid ColumnDefinitions="*,Auto" Padding="8,0" ColumnSpacing="12">
-            <VerticalStackLayout Spacing="0" VerticalOptions="Center">
-                <Label x:Name="HeaderTitleLabel" FontAttributes="Bold" FontSize="16" />
-                <Label x:Name="HeaderIdentityLabel" FontSize="12" LineBreakMode="TailTruncation" />
-            </VerticalStackLayout>
-        </Grid>
-    </Shell.TitleView>
-    <TabBar>
-        <ShellContent Title="Home" Route="MainPage" ContentTemplate="{DataTemplate local:MainPage}" />
-        <ShellContent Title="Employees" Route="EmployeesPage" ContentTemplate="{DataTemplate local:EmployeesPage}" />
-        <ShellContent Title="Profile" Route="ProfilePage" ContentTemplate="{DataTemplate local:ProfilePage}" />
-    </TabBar>
+<Shell
+    x:Class="HRMobile.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:pages="clr-namespace:HRMobile.Pages">
+
+    <FlyoutItem Title="Home">
+        <ShellContent
+            Title="Home"
+            Route="home"
+            ContentTemplate="{DataTemplate pages:HomePage}" />
+    </FlyoutItem>
+
+    <FlyoutItem Title="Employees">
+        <ShellContent
+            Title="Employees"
+            Route="employees"
+            ContentTemplate="{DataTemplate pages:Employees}" />
+    </FlyoutItem>
+
 </Shell>

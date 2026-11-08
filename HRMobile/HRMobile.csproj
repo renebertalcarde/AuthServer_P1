@@ -76,10 +76,21 @@
 
 	<ItemGroup>
 	  <Compile Remove="MainPage - Copy.xaml.cs" />
+	  <Compile Remove="Pages\AppPageLayout.xaml.cs" />
+	  <Compile Remove="Pages\EmployeesPage.xaml.cs" />
+	  <Compile Remove="Pages\IdentityHeader.xaml.cs" />
+	  <Compile Remove="Pages\MainPage.xaml.cs" />
+	  <Compile Remove="Pages\ProfilePage.xaml.cs" />
+	  <Compile Remove="Services\IdentitySvc.cs" />
 	</ItemGroup>
 
 	<ItemGroup>
 	  <MauiXaml Remove="MainPage - Copy.xaml" />
+	  <MauiXaml Remove="Pages\AppPageLayout.xaml" />
+	  <MauiXaml Remove="Pages\EmployeesPage.xaml" />
+	  <MauiXaml Remove="Pages\IdentityHeader.xaml" />
+	  <MauiXaml Remove="Pages\MainPage.xaml" />
+	  <MauiXaml Remove="Pages\ProfilePage.xaml" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -94,6 +105,31 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\SharedLib\SharedLib.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <MauiXaml Update="Components\AppHeader.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Components\AppPageLayout.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Pages\Employees.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Pages\HomePage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="Controls\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="Components\AppHeader.xaml.cs">
+	    <DependentUpon>AppHeader.xaml</DependentUpon>
+	  </Compile>
 	</ItemGroup>
 
 </Project>

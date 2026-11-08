@@ -1,0 +1,23 @@
+<ContentView
+    x:Class="HRMobile.Components.AppPageLayout"
+    x:Name="Root"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:components="clr-namespace:HRMobile.Components">
+
+    <Grid RowDefinitions="Auto,*">
+
+        <!-- Common application header -->
+        <ContentView
+            Grid.Row="0"
+            x:Name="HeaderContainer" />
+
+        <!-- Page-specific content -->
+        <ContentView
+            Grid.Row="1"
+            Content="{Binding PageContent,
+                Source={RelativeSource AncestorType={x:Type ContentView}}}"/>
+
+    </Grid>
+
+</ContentView>

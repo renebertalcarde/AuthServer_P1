@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<ContentView
+    x:Class="HRMobile.Pages.IdentityHeader"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <Grid
+        Padding="16,12"
+        ColumnDefinitions="*,Auto"
+        RowDefinitions="Auto,Auto"
+        BackgroundColor="{AppThemeBinding Light=#FFFFFF,
+                                          Dark=#202020}">
+
+        <!-- Application name -->
+        <Label
+            Grid.Row="0"
+            Grid.Column="0"
+            Text="HRMobile"
+            FontSize="20"
+            FontAttributes="Bold"
+            VerticalOptions="Center" />
+
+        <!-- Signed-in identity -->
+        <Label
+            Grid.Row="1"
+            Grid.Column="0"
+            Text="{Binding IdentityLabel}"
+            FontSize="14"
+            TextColor="Gray"
+            VerticalOptions="Center" />
+
+        <!-- Profile navigation -->
+        <Button
+            Grid.Row="0"
+            Grid.RowSpan="2"
+            Grid.Column="1"
+            Text="Profile"
+            Command="{Binding GoToProfileCommand}"
+            VerticalOptions="Center" />
+
+    </Grid>
+
+</ContentView>

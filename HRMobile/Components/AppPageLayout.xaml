@@ -8,16 +8,15 @@
     <Grid RowDefinitions="Auto,*">
 
         <!-- Common application header -->
-        <components:AppHeader
+        <ContentView
             Grid.Row="0"
-            BindingContext="{Binding User,
-                Source={x:Reference Root}}" />
+            x:Name="HeaderContainer" />
 
         <!-- Page-specific content -->
         <ContentView
             Grid.Row="1"
             Content="{Binding PageContent,
-                Source={x:Reference Root}}" />
+                Source={RelativeSource AncestorType={x:Type ContentView}}}"/>
 
     </Grid>
 

@@ -33,6 +33,7 @@ public class UserViewModel : TokenParser, INotifyPropertyChanged
         {
             _isSignedIn = value;
             OnPropertyChanged();
+            OnPropertyChanged(nameof(IsSignedOut));
         }    
     }
     public bool IsSignedOut

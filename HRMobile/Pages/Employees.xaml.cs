@@ -1,12 +1,12 @@
-using HRMobile.ViewModels;
+using HRMobile.Components;
 
 namespace HRMobile.Pages;
 
 public partial class Employees : ContentPage
 {
-    public Employees(UserViewModel user)
+    public Employees(AppHeader appHeader)
     {
         InitializeComponent();
-        PageLayout.User = user;
+        PageLayout.Header = appHeader;
     }
 }

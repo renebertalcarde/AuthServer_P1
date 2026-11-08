@@ -27,6 +27,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<AppShell>();
 
         builder.Services.AddTransient<AppHeader>();
+        builder.Services.AddTransient<AppPageLayout>();
         builder.Services.AddTransient<HomePage>();
         builder.Services.AddTransient<Employees>();
         return builder.Build();

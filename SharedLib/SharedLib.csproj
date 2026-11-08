@@ -12,4 +12,8 @@
     <None Remove="Extensions\**" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Remove="OAuthConfiguration\Android_Emulator.cs" />
+  </ItemGroup>
+
 </Project>

@@ -57,10 +57,10 @@ public class UserViewModel : TokenParser, INotifyPropertyChanged
 
     private void UserViewModel_Fetched(object? sender, EventArgs e)
     {
-        if (UserName != base.UserName) 
-            UserName = base.UserName ?? "{Unknown}";
-        if (CompanyName != base.CompanyName)
-            CompanyName = base.CompanyName ?? "{Unknown}";
+        if (UserName != _un) 
+            UserName = _un ?? "{Unknown}";
+        if (CompanyName != _cn)
+            CompanyName = _cn ?? "{Unknown}";
         if (IsSignedIn != base.IsSignedIn)
             IsSignedIn = base.IsSignedIn;
     }

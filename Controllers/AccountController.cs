@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using SharedLib.OAuthConfiguration;
 
 namespace AuthServer.Controllers;
 
@@ -169,7 +170,7 @@ public sealed class AccountController : Controller
         try
         {
             await _signInManager.SignOutAsync();
-            return Redirect(SharedLib.OAuthConfiguration.RedirectUri);
+            return Content("You have been logged out. You may now close this window.");
         }
         catch (Exception ex)
         {

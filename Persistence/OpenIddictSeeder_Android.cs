@@ -1,5 +1,5 @@
-﻿using SharedLib;
-using OpenIddict.Abstractions;
+﻿using OpenIddict.Abstractions;
+using Android = SharedLib.OAuthConfiguration.Android;
 
 namespace AuthServer.Persistence;
 
@@ -8,12 +8,13 @@ public static class OpenIddictSeeder_Android
     public static async Task SeedAsync(
         IServiceProvider serviceProvider)
     {
+        var conf = new Android();
         using var scope = serviceProvider.CreateScope();
 
         var applicationManager = scope.ServiceProvider
             .GetRequiredService<IOpenIddictApplicationManager>();
 
-        const string clientId = "authserver-p1-mobile";
+        var clientId = conf.ClientId;
 
         // Check whether the client already exists.
         var existingApplication =
@@ -42,7 +43,7 @@ public static class OpenIddictSeeder_Android
 
         // Replace this URI with your actual mobile callback URI.
         descriptor.RedirectUris.Add(
-            new Uri(OAuthConfiguration.RedirectUri));
+            new Uri(conf.RedirectUri));
 
         // Allow Authorization Code Flow.
         descriptor.Permissions.Add(

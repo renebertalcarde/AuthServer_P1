@@ -8,18 +8,9 @@ public abstract class TokenParser
 {
     public event EventHandler? Fetched;
     protected bool IsSignedIn => !string.IsNullOrEmpty(_token);
-    protected string? UserName =>
-            GetClaim("preferred_username") ??
-            GetClaim("unique_name") ??
-            GetClaim("name") ??
-            GetClaim("email") ??
-            GetClaim("sub");
-    protected string? CompanyName =>
-            GetClaim("tenant_name") ??
-            GetClaim("company_name") ??
-            GetClaim("tenant_code");
-    private string? _token;
-    private JsonElement? _root;
+    protected string? _token;
+    protected JsonElement? _root;
+    protected string? _un, _cn;
     protected readonly IAuthService _authService;
 
     public TokenParser(IAuthService authService)
@@ -28,13 +19,31 @@ public abstract class TokenParser
         Refresh();
     }
 
-    protected async void Refresh()
+    //public void Trigger_Fetch()
+    //{
+    //    Fetched?.Invoke(this, EventArgs.Empty);
+    //}
+
+    public async void Refresh()
     {
         _token = await _authService.GetIdTokenAsync();
-        _root = GetRootElement();
+        _root = GetRootElement();    
+        
+        _un = 
+            GetClaim("preferred_username") ??
+            GetClaim("unique_name") ??
+            GetClaim("name") ??
+            GetClaim("email") ??
+            GetClaim("sub");
+
+        _cn =
+            GetClaim("tenant_name") ??
+            GetClaim("company_name") ??
+            GetClaim("tenant_code");
+
         Fetched?.Invoke(this, EventArgs.Empty);
     }
-    private JsonElement? GetRootElement()
+    protected JsonElement? GetRootElement()
     {
         var parts = _token?.Split('.') ?? [];
         if (parts.Length == 3)
@@ -46,6 +55,6 @@ public abstract class TokenParser
         }
         return null;
     }
-    private string? GetClaim(string name) =>
+    protected string? GetClaim(string name) =>
         _root is JsonElement el && el.TryGetProperty(name, out var value) ? (value.ValueKind == JsonValueKind.String ? value.GetString() : value.ToString()) : null;
 }

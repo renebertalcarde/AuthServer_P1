@@ -1,5 +1,6 @@
 using HRMobile.Objects;
-using SharedLib;
+using HRMobile.Services.Platforms;
+using SharedLib.OAuthConfiguration;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
@@ -13,17 +14,28 @@ public sealed class AuthService : IAuthService
     private const string RefreshTokenKey = "hr_refresh_token";
     private const string IdTokenKey = "hr_id_token";
     private readonly HttpClient _httpClient;
+    private readonly IPlatformAuthBrowser _platformAuthBrowser;
+    private readonly IOAuthConfiguration _oAuthConfiguration;
 
     public event EventHandler? IdentityChanged;
 
-    public AuthService(HttpClient httpClient) => _httpClient = httpClient;
+    public AuthService(
+        HttpClient httpClient, 
+        IPlatformAuthBrowser platformAuthBrowser,
+        IOAuthConfiguration oAuthConfiguration
+        )
+    {
+        _httpClient = httpClient;
+        _platformAuthBrowser = platformAuthBrowser;
+        _oAuthConfiguration = oAuthConfiguration;
+    }
 
     public async Task<bool> LoginAsync(CancellationToken cancellationToken = default)
     {
         DiscoveryDocument discovery;
         try
         {
-            discovery = await _httpClient.GetFromJsonAsync<DiscoveryDocument>(OAuthConfiguration.DiscoveryEndpoint, cancellationToken)
+            discovery = await _httpClient.GetFromJsonAsync<DiscoveryDocument>(_oAuthConfiguration.DiscoveryEndpoint, cancellationToken)
                 ?? throw new InvalidOperationException("The AuthServer discovery document is incomplete.");
             if (string.IsNullOrWhiteSpace(discovery.AuthorizationEndpoint) || string.IsNullOrWhiteSpace(discovery.TokenEndpoint))
                 throw new InvalidOperationException("The AuthServer discovery document is incomplete.");
@@ -39,30 +51,31 @@ public sealed class AuthService : IAuthService
         var state = CreateRandomValue();
         var parameters = new Dictionary<string, string>
         {
-            ["client_id"] = OAuthConfiguration.ClientId,
-            ["redirect_uri"] = OAuthConfiguration.RedirectUri,
+            ["client_id"] = _oAuthConfiguration.ClientId,
+            ["redirect_uri"] = _oAuthConfiguration.RedirectUri,
             ["response_type"] = "code",
-            ["scope"] = OAuthConfiguration.Scope,
+            ["scope"] = _oAuthConfiguration.Scope,
             ["state"] = state,
             ["code_challenge"] = challenge,
             ["code_challenge_method"] = "S256"
         };
-        var authorizationUrl = discovery.AuthorizationEndpoint + "?" +
-            string.Join("&", parameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
-        var callback = await WebAuthenticator.Default.AuthenticateAsync(new Uri(authorizationUrl), new Uri(OAuthConfiguration.RedirectUri));
+
+        var authorizationUrl = discovery.AuthorizationEndpoint + "?" + string.Join("&", parameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
+        var callback = await _platformAuthBrowser.AuthenticateAsync(new Uri(authorizationUrl), new Uri(_oAuthConfiguration.RedirectUri), cancellationToken);
+
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!callback.Properties.TryGetValue("state", out var returnedState) ||
+        if (!callback.TryGetValue("state", out var returnedState) ||
             !CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(state), Encoding.UTF8.GetBytes(returnedState)))
             throw new InvalidOperationException("OAuth state validation failed.");
-        if (!callback.Properties.TryGetValue("code", out var code) || string.IsNullOrWhiteSpace(code))
+        if (!callback.TryGetValue("code", out var code) || string.IsNullOrWhiteSpace(code))
             throw new InvalidOperationException("AuthServer did not return an authorization code.");
 
         using var requestContent = new FormUrlEncodedContent(new Dictionary<string, string>
         {
             ["grant_type"] = "authorization_code",
-            ["client_id"] = OAuthConfiguration.ClientId,
-            ["redirect_uri"] = OAuthConfiguration.RedirectUri,
+            ["client_id"] = _oAuthConfiguration.ClientId,
+            ["redirect_uri"] = _oAuthConfiguration.RedirectUri,
             ["code"] = code,
             ["code_verifier"] = verifier
         });
@@ -75,7 +88,7 @@ public sealed class AuthService : IAuthService
             ?? throw new InvalidOperationException("AuthServer returned an invalid token response.");
         if (string.IsNullOrWhiteSpace(tokens.AccessToken))
             throw new InvalidOperationException("AuthServer returned no access token.");
-        if (OAuthConfiguration.Scope.Split(' ', StringSplitOptions.RemoveEmptyEntries).Contains("openid", StringComparer.Ordinal) &&
+        if (_oAuthConfiguration.Scope.Split(' ', StringSplitOptions.RemoveEmptyEntries).Contains("openid", StringComparer.Ordinal) &&
             string.IsNullOrWhiteSpace(tokens.IdToken))
             throw new InvalidOperationException("AuthServer returned no ID token. Verify the openid scope and token response.");
 
@@ -96,11 +109,11 @@ public sealed class AuthService : IAuthService
     {
         try
         {
-            var logoutUrl = new Uri(new Uri(OAuthConfiguration.Authority), "/Account/Logout");
+            var logoutUrl = new Uri(new Uri(_oAuthConfiguration.Authority), "/Account/Logout");
             await WebAuthenticator.Default.AuthenticateAsync(new WebAuthenticatorOptions
             {
                 Url = logoutUrl,
-                CallbackUrl = new Uri(OAuthConfiguration.RedirectUri)
+                CallbackUrl = new Uri(_oAuthConfiguration.RedirectUri)
             });
         }
         catch (TaskCanceledException)

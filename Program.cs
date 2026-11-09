@@ -53,7 +53,7 @@ var pfxPath = @"C:\dev\authserver-certs\authserver.pfx";
 var pfxPassword = builder.Configuration["AuthServer:CertificatePassword"]
                   ?? Environment.GetEnvironmentVariable("AUTHSERVER_CERT_PASSWORD");
 
-var certificate = new X509Certificate2(
+var certificate = X509CertificateLoader.LoadPkcs12FromFile(
     pfxPath,
     pfxPassword,
     X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.PersistKeySet);

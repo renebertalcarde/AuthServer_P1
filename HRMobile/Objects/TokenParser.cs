@@ -1,49 +1,38 @@
-﻿using HRMobile.Services;
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 
 namespace HRMobile.Objects;
 
-public abstract class TokenParser
+public class TokenParser
 {
-    public event EventHandler? Fetched;
-    protected bool IsSignedIn => !string.IsNullOrEmpty(_token);
-    protected string? _token;
-    protected JsonElement? _root;
-    protected string? _un, _cn;
-    protected readonly IAuthService _authService;
+    public string UserName { get; }
+    public string CompanyName { get; }        
 
-    public TokenParser(IAuthService authService)
+    public bool IsSignedIn { get; }
+    private JsonElement? _el;
+
+    public TokenParser(string? token)
     {
-        _authService = authService;
-        Refresh();
-    }
+        IsSignedIn = !string.IsNullOrEmpty(token);
 
-    //public void Trigger_Fetch()
-    //{
-    //    Fetched?.Invoke(this, EventArgs.Empty);
-    //}
+        _el = GetRootElement(token);
+        if (_el == null) return;
 
-    public async void Refresh()
-    {
-        _token = await _authService.GetIdTokenAsync();
-        _root = GetRootElement();    
-        
-        _un = 
+        UserName = 
             GetClaim("preferred_username") ??
             GetClaim("unique_name") ??
             GetClaim("name") ??
             GetClaim("email") ??
-            GetClaim("sub");
-
-        _cn =
+            GetClaim("sub") ??
+            "{Unknown}";
+        CompanyName = 
             GetClaim("tenant_name") ??
             GetClaim("company_name") ??
-            GetClaim("tenant_code");
-
-        Fetched?.Invoke(this, EventArgs.Empty);
+            GetClaim("tenant_code") ??
+            "{Unknown}";
     }
-    protected JsonElement? GetRootElement()
+
+    private JsonElement? GetRootElement(string? _token)
     {
         var parts = _token?.Split('.') ?? [];
         if (parts.Length == 3)
@@ -51,10 +40,11 @@ public abstract class TokenParser
             var payload = parts[1].Replace('-', '+').Replace('_', '/');
             payload = payload.PadRight(payload.Length + (4 - payload.Length % 4) % 4, '=');
             using var doc = JsonDocument.Parse(Encoding.UTF8.GetString(Convert.FromBase64String(payload)));
-            return doc.RootElement;
+            return doc.RootElement.Clone();
         }
         return null;
     }
-    protected string? GetClaim(string name) =>
-        _root is JsonElement el && el.TryGetProperty(name, out var value) ? (value.ValueKind == JsonValueKind.String ? value.GetString() : value.ToString()) : null;
+    private string? GetClaim(string name) => 
+        _el.Value.TryGetProperty(name, out var value) ? (value.ValueKind == JsonValueKind.String ? value.GetString() : value.ToString()) : null;
+
 }

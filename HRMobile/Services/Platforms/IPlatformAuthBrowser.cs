@@ -2,8 +2,8 @@ namespace HRMobile.Services.Platforms;
 
 public interface IPlatformAuthBrowser
 {
-    Task<IDictionary<string, string>> AuthenticateAsync(
-        Uri authorizationUri,
+    Task<Dictionary<string, string>> AuthenticateAsync(
+        Uri url,
         Uri callbackUri,
         CancellationToken cancellationToken = default);
 }

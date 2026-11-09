@@ -4,6 +4,7 @@ using HRMobile.Services;
 using HRMobile.Services.Platforms;
 using HRMobile.ViewModels;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.Controls.PlatformConfiguration;
 using SharedLib.OAuthConfiguration;
 
 namespace HRMobile;
@@ -25,17 +26,18 @@ public static class MauiProgram
         
         builder.Services.AddHttpClient<AuthService>();
 
-#if  ANDROID
-        builder.Services.AddSingleton<IPlatformAuthBrowser, AndroidAuthBrowser>();
-        builder.Services.AddSingleton<IOAuthConfiguration, SharedLib.OAuthConfiguration.Android>();
-#elif WINDOWS
+#if WINDOWS
         builder.Services.AddSingleton<IPlatformAuthBrowser, WindowsAuthBrowser>();
         builder.Services.AddSingleton<IOAuthConfiguration, SharedLib.OAuthConfiguration.Windows>();
+#else
+        builder.Services.AddSingleton<IPlatformAuthBrowser, AndroidAuthBrowser>();
+        builder.Services.AddSingleton<IOAuthConfiguration, SharedLib.OAuthConfiguration.Android>();
+
 #endif
 
-        builder.Services.AddSingleton<IAuthService>(provider => provider.GetRequiredService<AuthService>());
-
+        builder.Services.AddSingleton<IAuthService, AuthService>(provider => provider.GetRequiredService<AuthService>());
         builder.Services.AddSingleton<UserViewModel>();
+
         builder.Services.AddSingleton<AppShell>();
 
         builder.Services.AddTransient<AppHeader>();

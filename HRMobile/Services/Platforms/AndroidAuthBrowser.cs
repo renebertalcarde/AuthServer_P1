@@ -2,13 +2,13 @@ namespace HRMobile.Services.Platforms;
 
 public sealed class AndroidAuthBrowser : IPlatformAuthBrowser
 {
-    public async Task<IDictionary<string, string>> AuthenticateAsync(
-        Uri authorizationUri,
+    public async Task<Dictionary<string, string>> AuthenticateAsync(
+        Uri url,
         Uri callbackUri,
         CancellationToken cancellationToken = default)
     {
         var result = await WebAuthenticator.Default.AuthenticateAsync(
-            authorizationUri,
+            url,
             callbackUri,
             cancellationToken);
 

@@ -8,27 +8,24 @@ using System.Text.Json;
 
 namespace HRMobile.Services;
 
-public sealed class AuthService : IAuthService
+public sealed class AuthService(
+    HttpClient httpClient,
+    IPlatformAuthBrowser platformAuthBrowser,
+    IOAuthConfiguration oAuthConfiguration
+        ) : IAuthService
 {
     private const string AccessTokenKey = "hr_access_token";
     private const string RefreshTokenKey = "hr_refresh_token";
     private const string IdTokenKey = "hr_id_token";
-    private readonly HttpClient _httpClient;
-    private readonly IPlatformAuthBrowser _platformAuthBrowser;
-    private readonly IOAuthConfiguration _oAuthConfiguration;
-
-    public event EventHandler? IdentityChanged;
-
-    public AuthService(
-        HttpClient httpClient, 
-        IPlatformAuthBrowser platformAuthBrowser,
-        IOAuthConfiguration oAuthConfiguration
-        )
+    private readonly HttpClient _httpClient = httpClient;
+    private readonly IPlatformAuthBrowser _platformAuthBrowser = platformAuthBrowser;
+    private readonly IOAuthConfiguration _oAuthConfiguration = oAuthConfiguration;
+    private TokenResponse? _tokens = null;
+    public class IdentityChangedEventArgs(TokenResponse? tokens = null) : EventArgs
     {
-        _httpClient = httpClient;
-        _platformAuthBrowser = platformAuthBrowser;
-        _oAuthConfiguration = oAuthConfiguration;
+        public TokenResponse? Tokens => tokens;
     }
+    public event EventHandler<IdentityChangedEventArgs>? IdentityChanged;
 
     public async Task<bool> LoginAsync(CancellationToken cancellationToken = default)
     {
@@ -61,14 +58,14 @@ public sealed class AuthService : IAuthService
         };
 
         var authorizationUrl = discovery.AuthorizationEndpoint + "?" + string.Join("&", parameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
-        var callback = await _platformAuthBrowser.AuthenticateAsync(new Uri(authorizationUrl), new Uri(_oAuthConfiguration.RedirectUri), cancellationToken);
+        var prop = await _platformAuthBrowser.AuthenticateAsync(new Uri(authorizationUrl), new Uri(_oAuthConfiguration.RedirectUri), cancellationToken);
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (!callback.TryGetValue("state", out var returnedState) ||
+        if (!prop.TryGetValue("state", out var returnedState) ||
             !CryptographicOperations.FixedTimeEquals(Encoding.UTF8.GetBytes(state), Encoding.UTF8.GetBytes(returnedState)))
             throw new InvalidOperationException("OAuth state validation failed.");
-        if (!callback.TryGetValue("code", out var code) || string.IsNullOrWhiteSpace(code))
+        if (!prop.TryGetValue("code", out var code) || string.IsNullOrWhiteSpace(code))
             throw new InvalidOperationException("AuthServer did not return an authorization code.");
 
         using var requestContent = new FormUrlEncodedContent(new Dictionary<string, string>
@@ -84,21 +81,21 @@ public sealed class AuthService : IAuthService
         if (!tokenResponse.IsSuccessStatusCode)
             throw new InvalidOperationException($"Token exchange failed ({(int)tokenResponse.StatusCode}): {responseBody}");
 
-        var tokens = JsonSerializer.Deserialize<TokenResponse>(responseBody)
+        _tokens = JsonSerializer.Deserialize<TokenResponse>(responseBody)
             ?? throw new InvalidOperationException("AuthServer returned an invalid token response.");
-        if (string.IsNullOrWhiteSpace(tokens.AccessToken))
+        if (string.IsNullOrWhiteSpace(_tokens.AccessToken))
             throw new InvalidOperationException("AuthServer returned no access token.");
         if (_oAuthConfiguration.Scope.Split(' ', StringSplitOptions.RemoveEmptyEntries).Contains("openid", StringComparer.Ordinal) &&
-            string.IsNullOrWhiteSpace(tokens.IdToken))
+            string.IsNullOrWhiteSpace(_tokens.IdToken))
             throw new InvalidOperationException("AuthServer returned no ID token. Verify the openid scope and token response.");
 
-        await SecureStorage.Default.SetAsync(AccessTokenKey, tokens.AccessToken);
-        if (!string.IsNullOrWhiteSpace(tokens.RefreshToken))
-            await SecureStorage.Default.SetAsync(RefreshTokenKey, tokens.RefreshToken);
-        if (!string.IsNullOrWhiteSpace(tokens.IdToken))
-            await SecureStorage.Default.SetAsync(IdTokenKey, tokens.IdToken);
+        await SecureStorage.Default.SetAsync(AccessTokenKey, _tokens.AccessToken);
+        if (!string.IsNullOrWhiteSpace(_tokens.RefreshToken))
+            await SecureStorage.Default.SetAsync(RefreshTokenKey, _tokens.RefreshToken);
+        if (!string.IsNullOrWhiteSpace(_tokens.IdToken))
+            await SecureStorage.Default.SetAsync(IdTokenKey, _tokens.IdToken);
 
-        IdentityChanged?.Invoke(this, EventArgs.Empty);
+        IdentityChanged?.Invoke(this, new(_tokens));
         return true;
     }
 
@@ -109,12 +106,9 @@ public sealed class AuthService : IAuthService
     {
         try
         {
-            var logoutUrl = new Uri(new Uri(_oAuthConfiguration.Authority), "/Account/Logout");
-            await WebAuthenticator.Default.AuthenticateAsync(new WebAuthenticatorOptions
-            {
-                Url = logoutUrl,
-                CallbackUrl = new Uri(_oAuthConfiguration.RedirectUri)
-            });
+            var logoutUri = new Uri(new Uri(_oAuthConfiguration.Authority), "/Account/Logout");
+            var callbackUri = new Uri(_oAuthConfiguration.RedirectUri);
+            await _platformAuthBrowser.AuthenticateAsync(logoutUri, callbackUri);
         }
         catch (TaskCanceledException)
         {
@@ -125,7 +119,8 @@ public sealed class AuthService : IAuthService
             SecureStorage.Default.Remove(AccessTokenKey);
             SecureStorage.Default.Remove(RefreshTokenKey);
             SecureStorage.Default.Remove(IdTokenKey);
-            IdentityChanged?.Invoke(this, EventArgs.Empty);
+            _tokens = null;
+            IdentityChanged?.Invoke(this, new(_tokens));
         }
     }
 

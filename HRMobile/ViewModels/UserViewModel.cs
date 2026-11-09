@@ -5,9 +5,9 @@ using System.Runtime.CompilerServices;
 
 namespace HRMobile.ViewModels;
 
-public class UserViewModel : TokenParser, INotifyPropertyChanged
+public class UserViewModel : INotifyPropertyChanged
 {
-    public new string UserName
+    public string UserName
     {
         get => _username;
         set
@@ -17,7 +17,7 @@ public class UserViewModel : TokenParser, INotifyPropertyChanged
         }
     }
 
-    public new string CompanyName
+    public string CompanyName
     {
         get => _companyName;
         set
@@ -26,7 +26,7 @@ public class UserViewModel : TokenParser, INotifyPropertyChanged
             OnPropertyChanged();
         }
     }
-    public new bool IsSignedIn
+    public bool IsSignedIn
     {
         get => _isSignedIn;
         set
@@ -36,33 +36,25 @@ public class UserViewModel : TokenParser, INotifyPropertyChanged
             OnPropertyChanged(nameof(IsSignedOut));
         }    
     }
-    public bool IsSignedOut
-    {
-        get => !_isSignedIn;
-        set
-        {
-            _isSignedIn = !value;
-            OnPropertyChanged();
-        }
-    }
+    public bool IsSignedOut => !_isSignedIn;
 
     private string _username = string.Empty;
     private string _companyName = string.Empty;
     private bool _isSignedIn = false;
+    private readonly IAuthService _authService;
 
-    public UserViewModel(IAuthService authService) : base(authService)
+    public UserViewModel(IAuthService authService)
     {
-        Fetched += UserViewModel_Fetched;
+        _authService = authService;
+        _authService.IdentityChanged += (sender, args) => Update(args.Tokens?.IdToken);
     }
 
-    private void UserViewModel_Fetched(object? sender, EventArgs e)
+    private void Update(string? token)
     {
-        if (UserName != _un) 
-            UserName = _un ?? "{Unknown}";
-        if (CompanyName != _cn)
-            CompanyName = _cn ?? "{Unknown}";
-        if (IsSignedIn != base.IsSignedIn)
-            IsSignedIn = base.IsSignedIn;
+        var parser = new TokenParser(token);
+        if (UserName != parser.UserName) UserName = parser.UserName;
+        if (CompanyName != parser.CompanyName) CompanyName = parser.CompanyName;
+        if (IsSignedIn != parser.IsSignedIn) IsSignedIn = parser.IsSignedIn;
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

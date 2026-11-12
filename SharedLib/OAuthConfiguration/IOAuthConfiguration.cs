@@ -6,9 +6,10 @@ public interface IOAuthConfiguration
 
     string ClientId { get; }
 
-    string RedirectUri { get; }
-
+    string SignIn_RedirectUri { get; }
+    string SignOut_RedirectUri { get; }
     string Scope { get; }
 
     string DiscoveryEndpoint { get; }
+    string EndSessionEndpoint { get; set; }
 }

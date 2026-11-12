@@ -6,5 +6,6 @@ public class Android : OAuthConfigurationBase
 
     public override string ClientId => "authserver-p1-mobile";
 
-    public override string RedirectUri => "com.hrmobile.auth://callback";
+    public override string SignIn_RedirectUri => "com.hrmobile://signin-callback";
+    public override string SignOut_RedirectUri => "com.hrmobile://signout-callback";
 }

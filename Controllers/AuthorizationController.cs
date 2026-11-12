@@ -1,3 +1,4 @@
+using AuthServer.Models;
 using AuthServer.Persistence;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Identity;
@@ -88,51 +89,45 @@ public sealed class AuthorizationController : Controller
         principal.SetDestinations(claim => claim.Type switch
         {
             OpenIddictConstants.Claims.Subject =>
-                new[]
-                {
+                [
                     OpenIddictConstants.Destinations.AccessToken,
                     OpenIddictConstants.Destinations.IdentityToken
-                },
+                ],
 
             OpenIddictConstants.Claims.Name
                 when claim.Subject.HasScope(
                     OpenIddictConstants.Permissions.Scopes.Profile) =>
-                new[]
-                {
+                [
                     OpenIddictConstants.Destinations.AccessToken,
                     OpenIddictConstants.Destinations.IdentityToken
-                },
+                ],
 
             OpenIddictConstants.Claims.Email
                 when claim.Subject.HasScope(
                     OpenIddictConstants.Permissions.Scopes.Email) =>
-                new[]
-                {
+                [
                     OpenIddictConstants.Destinations.AccessToken,
                     OpenIddictConstants.Destinations.IdentityToken
-                },
+                ],
 
             "preferred_username"
                 when claim.Subject.HasScope(
                     OpenIddictConstants.Scopes.Profile) =>
-                new[]
-                {
+                [
                     OpenIddictConstants.Destinations.AccessToken,
                     OpenIddictConstants.Destinations.IdentityToken
-                },
+                ],
 
             "tenant_id" or "tenant_code" =>
-                new[]
-                {
+                [
                     OpenIddictConstants.Destinations.AccessToken
-                },
+                ],
 
             "tenant_name" =>
-                new[]
-                {
+                [
                     OpenIddictConstants.Destinations.AccessToken,
                     OpenIddictConstants.Destinations.IdentityToken
-                },
+                ],
 
             _ => Array.Empty<string>()
         });

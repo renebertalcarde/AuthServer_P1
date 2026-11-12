@@ -4,10 +4,13 @@ public sealed class WindowsAuthBrowser : IPlatformAuthBrowser
 {
     public async Task<Dictionary<string, string>> AuthenticateAsync(Uri authUri, Uri callbackUri, CancellationToken cancellationToken = default)
     {
+        Dictionary<string, string> ret = [];
+#if WINDOWS
         var res = await WinUIEx.WebAuthenticator.AuthenticateAsync(authUri, callbackUri, cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
-        return res.Properties;
-        
+        ret = res.Properties;
+#endif
+        return ret;
     }
 
     //public async Task<IDictionary<string, string>> AuthenticateAsync(

@@ -29,6 +29,7 @@ public static class DependencyInjection
             {
                 options.SetAuthorizationEndpointUris("/connect/authorize");
                 options.SetTokenEndpointUris("/connect/token");
+                options.SetEndSessionEndpointUris("/account/logout");
 
                 options.AllowAuthorizationCodeFlow();
                 options.AllowRefreshTokenFlow();
@@ -37,7 +38,8 @@ public static class DependencyInjection
                 options.AddDevelopmentSigningCertificate();
 
                 options.UseAspNetCore()
-                    .EnableAuthorizationEndpointPassthrough();
+                    .EnableAuthorizationEndpointPassthrough()
+                    .EnableEndSessionEndpointPassthrough();
 
                 options.RegisterScopes(
                     OpenIddictConstants.Scopes.Email,

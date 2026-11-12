@@ -4,7 +4,6 @@ using HRMobile.Services;
 using HRMobile.Services.Platforms;
 using HRMobile.ViewModels;
 using Microsoft.Extensions.Logging;
-using Microsoft.Maui.Controls.PlatformConfiguration;
 using SharedLib.OAuthConfiguration;
 
 namespace HRMobile;

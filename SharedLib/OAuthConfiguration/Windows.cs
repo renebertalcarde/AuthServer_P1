@@ -6,5 +6,6 @@ public class Windows : OAuthConfigurationBase
 
     public override string ClientId => "authserver-p1-windows";
 
-    public override string RedirectUri => "http://127.0.0.1:49152/callback";
+    public override string SignIn_RedirectUri => "com.hrmobile://signin-callback";
+    public override string SignOut_RedirectUri => "com.hrmobile://signout-callback";
 }

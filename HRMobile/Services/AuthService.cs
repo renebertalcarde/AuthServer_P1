@@ -5,6 +5,7 @@ using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Web;
 
 namespace HRMobile.Services;
 
@@ -34,8 +35,9 @@ public sealed class AuthService(
         {
             discovery = await _httpClient.GetFromJsonAsync<DiscoveryDocument>(_oAuthConfiguration.DiscoveryEndpoint, cancellationToken)
                 ?? throw new InvalidOperationException("The AuthServer discovery document is incomplete.");
-            if (string.IsNullOrWhiteSpace(discovery.AuthorizationEndpoint) || string.IsNullOrWhiteSpace(discovery.TokenEndpoint))
+            if (string.IsNullOrWhiteSpace(discovery.AuthorizationEndpoint) || string.IsNullOrWhiteSpace(discovery.TokenEndpoint) || string.IsNullOrWhiteSpace(discovery.EndSessionEndpoint))
                 throw new InvalidOperationException("The AuthServer discovery document is incomplete.");
+            _oAuthConfiguration.EndSessionEndpoint = discovery.EndSessionEndpoint;
         }
         catch (Exception ex)
         {
@@ -49,7 +51,7 @@ public sealed class AuthService(
         var parameters = new Dictionary<string, string>
         {
             ["client_id"] = _oAuthConfiguration.ClientId,
-            ["redirect_uri"] = _oAuthConfiguration.RedirectUri,
+            ["redirect_uri"] = _oAuthConfiguration.SignIn_RedirectUri,
             ["response_type"] = "code",
             ["scope"] = _oAuthConfiguration.Scope,
             ["state"] = state,
@@ -58,7 +60,7 @@ public sealed class AuthService(
         };
 
         var authorizationUrl = discovery.AuthorizationEndpoint + "?" + string.Join("&", parameters.Select(p => $"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}"));
-        var prop = await _platformAuthBrowser.AuthenticateAsync(new Uri(authorizationUrl), new Uri(_oAuthConfiguration.RedirectUri), cancellationToken);
+        var prop = await _platformAuthBrowser.AuthenticateAsync(new Uri(authorizationUrl), new Uri(_oAuthConfiguration.SignIn_RedirectUri), cancellationToken);
 
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -72,7 +74,7 @@ public sealed class AuthService(
         {
             ["grant_type"] = "authorization_code",
             ["client_id"] = _oAuthConfiguration.ClientId,
-            ["redirect_uri"] = _oAuthConfiguration.RedirectUri,
+            ["redirect_uri"] = _oAuthConfiguration.SignIn_RedirectUri,
             ["code"] = code,
             ["code_verifier"] = verifier
         });
@@ -104,24 +106,21 @@ public sealed class AuthService(
 
     public async Task LogoutAsync()
     {
-        try
-        {
-            var logoutUri = new Uri(new Uri(_oAuthConfiguration.Authority), "/Account/Logout");
-            var callbackUri = new Uri(_oAuthConfiguration.RedirectUri);
-            await _platformAuthBrowser.AuthenticateAsync(logoutUri, callbackUri);
-        }
-        catch (TaskCanceledException)
-        {
-            // The user cancelled the browser flow.
-        }
-        finally
-        {
-            SecureStorage.Default.Remove(AccessTokenKey);
-            SecureStorage.Default.Remove(RefreshTokenKey);
-            SecureStorage.Default.Remove(IdTokenKey);
-            _tokens = null;
-            IdentityChanged?.Invoke(this, new(_tokens));
-        }
+        SecureStorage.Default.Remove("AccessTokenKey");
+        SecureStorage.Default.Remove("RefreshTokenKey");
+        SecureStorage.Default.Remove("IdTokenKey");
+        _tokens = null;
+        IdentityChanged?.Invoke(this, new(null));
+
+        var logoutUrl =
+            $"{_oAuthConfiguration.EndSessionEndpoint}" +
+            $"?client_id={_oAuthConfiguration.ClientId}" +
+            $"&id_token_hint={Uri.EscapeDataString(_tokens?.IdToken ?? "")}" +
+            $"&post_logout_redirect_uri={Uri.EscapeDataString(_oAuthConfiguration.SignOut_RedirectUri)}";
+        
+        await _platformAuthBrowser.AuthenticateAsync(
+              new Uri(logoutUrl),
+              new Uri(_oAuthConfiguration.SignOut_RedirectUri));
     }
 
     private static string CreateRandomValue() =>
@@ -134,6 +133,8 @@ public sealed class AuthService(
     {
         [System.Text.Json.Serialization.JsonPropertyName("authorization_endpoint")]
         public string? AuthorizationEndpoint { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("end_session_endpoint")]
+        public string? EndSessionEndpoint { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("token_endpoint")]
         public string? TokenEndpoint { get; set; }
         [System.Text.Json.Serialization.JsonPropertyName("issuer")]

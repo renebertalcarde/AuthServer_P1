@@ -1,34 +1,32 @@
 ﻿using OpenIddict.Abstractions;
-using Android = SharedLib.OAuthConfiguration.Android;
+using SharedLib.OAuthConfiguration;
 
 namespace AuthServer.Persistence;
 
 public static class OpenIddictSeeder_Android
 {
-    public static async Task SeedAsync(
-        IServiceProvider serviceProvider)
+    private static readonly IOAuthConfiguration _conf = new SharedLib.OAuthConfiguration.Android();
+    public static async Task SeedAsync(IServiceProvider serviceProvider)
     {
-        var conf = new Android();
         using var scope = serviceProvider.CreateScope();
 
-        var applicationManager = scope.ServiceProvider
+        var manager = scope.ServiceProvider
             .GetRequiredService<IOpenIddictApplicationManager>();
 
-        var clientId = conf.ClientId;
+        var clientId = _conf.ClientId;
 
         // Check whether the client already exists.
-        var existingApplication =
-            await applicationManager.FindByClientIdAsync(clientId);
+        var application =
+            await manager.FindByClientIdAsync(clientId);
 
-        if (existingApplication is not null)
+        if (application is not null)
         {
             // Preserve the existing client's redirect URIs and permissions while
             // granting the dedicated tenant API scope.
             var existingDescriptor = new OpenIddictApplicationDescriptor();
-            await applicationManager.PopulateAsync(existingDescriptor, existingApplication);
-            existingDescriptor.Permissions.Add(
-                OpenIddictConstants.Permissions.Prefixes.Scope + "tenant_api");
-            await applicationManager.UpdateAsync(existingApplication, existingDescriptor);
+            await manager.PopulateAsync(existingDescriptor, application);
+            existingDescriptor.Permissions.Add(OpenIddictConstants.Permissions.Prefixes.Scope + "tenant_api");
+            await manager.UpdateAsync(application, existingDescriptor);
             return;
         }
 
@@ -41,9 +39,12 @@ public static class OpenIddictSeeder_Android
             ConsentType = OpenIddictConstants.ConsentTypes.Explicit
         };
 
-        // Replace this URI with your actual mobile callback URI.
-        descriptor.RedirectUris.Add(
-            new Uri(conf.RedirectUri));
+        // Configure the Windows callback.
+        descriptor.RedirectUris.Clear();
+        descriptor.RedirectUris.Add(new(_conf.SignIn_RedirectUri));
+
+        descriptor.PostLogoutRedirectUris.Clear();
+        descriptor.PostLogoutRedirectUris.Add(new(_conf.SignOut_RedirectUri));
 
         // Allow Authorization Code Flow.
         descriptor.Permissions.Add(
@@ -51,6 +52,9 @@ public static class OpenIddictSeeder_Android
 
         descriptor.Permissions.Add(
             OpenIddictConstants.Permissions.Endpoints.Token);
+
+        descriptor.Permissions.Add(
+            OpenIddictConstants.Permissions.Endpoints.EndSession);
 
         descriptor.Permissions.Add(
             OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode);
@@ -75,6 +79,6 @@ public static class OpenIddictSeeder_Android
                
 
         // Save the client in the database.
-        await applicationManager.CreateAsync(descriptor);
+        await manager.CreateAsync(descriptor);
     }
 }

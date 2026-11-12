@@ -1,6 +1,0 @@
-@AuthServer_HostAddress = https://0.0.0.0:7284
-
-GET {{AuthServer_HostAddress}}/.well-known/openid-configuration
-Accept: application/json
-
-###

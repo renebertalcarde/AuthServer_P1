@@ -90,6 +90,14 @@ public sealed class AccountController : Controller
     public async Task<IActionResult> SelectCompany(string? returnUrl = null)
     {
         var model = await BuildCompanySelectionModelAsync();
+        if (model.Companies.Count == 1)
+        {
+            // If the user has only one company, automatically select it.
+            model.CompanyId = model.Companies[0].Id;
+            model.ReturnUrl = returnUrl;
+            return await SelectCompany(model);
+        }
+
         model.ReturnUrl = IsLocalReturnUrl(returnUrl) ? returnUrl : null;
 
         return View("SelectCompany", model);
@@ -143,11 +151,10 @@ public sealed class AccountController : Controller
         await _signInManager.SignInWithClaimsAsync(
             user,
             isPersistent,
-            new[]
-            {
+            [
                 new Claim("tenant_id", membership.CompanyId.ToString()),
                 new Claim("tenant_code", membership.Company.Code)
-            });
+            ]);
 
         if (IsLocalReturnUrl(model.ReturnUrl))
         {
@@ -158,25 +165,17 @@ public sealed class AccountController : Controller
     }
 
     [HttpGet("logout")]
-    public IActionResult Logout(LogoutViewModel? model = null)
-    {
-        return View(model);
-    }
-
     [HttpPost("logout")]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Logout()
+    public async Task<IActionResult> Logout(string post_logout_redirect_uri)
     {
-        try
-        {
-            await _signInManager.SignOutAsync();
-            return Content("You have been logged out. You may now close this window.");
-        }
-        catch (Exception ex)
-        {
-            ModelState.AddModelError("signoutfailed", ex.Message);
-            return View(new LogoutViewModel { Ex = ex });
-        }
+        await _signInManager.SignOutAsync();
+
+        return SignOut(
+            new AuthenticationProperties
+            {
+                RedirectUri = post_logout_redirect_uri
+            },
+            IdentityConstants.ApplicationScheme);
     }
 
     private async Task<CompanySelectionViewModel> BuildCompanySelectionModelAsync()

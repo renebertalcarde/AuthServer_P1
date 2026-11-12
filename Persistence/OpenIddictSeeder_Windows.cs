@@ -1,44 +1,49 @@
 ﻿using OpenIddict.Abstractions;
+using SharedLib.OAuthConfiguration;
 
 namespace AuthServer.Persistence;
 
 public static class OpenIddictSeeder_Windows
 {
-    private const string WindowsClientId = "authserver-p1-windows";
-
-    // Fixed loopback port for the initial implementation.
-    private static readonly Uri WindowsRedirectUri =
-        new("http://127.0.0.1:49152/callback");
-
+    private static readonly IOAuthConfiguration _conf = new SharedLib.OAuthConfiguration.Windows();
+        
     public static async Task SeedAsync(IServiceProvider serviceProvider)
     {
         using var scope = serviceProvider.CreateScope();
 
         var manager = scope.ServiceProvider
             .GetRequiredService<IOpenIddictApplicationManager>();
-             
-        var application =
-            await manager.FindByClientIdAsync(WindowsClientId);
 
-        var descriptor = new OpenIddictApplicationDescriptor();
+        var clientId = _conf.ClientId;
+
+        var application =
+            await manager.FindByClientIdAsync(clientId);
 
         if (application is not null)
         {
-            await manager.PopulateAsync(descriptor, application);
+            // Preserve the existing client's redirect URIs and permissions while
+            // granting the dedicated tenant API scope.
+            var existingDescriptor = new OpenIddictApplicationDescriptor();
+            await manager.PopulateAsync(existingDescriptor, application);
+            existingDescriptor.Permissions.Add(OpenIddictConstants.Permissions.Prefixes.Scope + "tenant_api");
+            await manager.UpdateAsync(application, existingDescriptor);
+            return;
         }
-        else
+
+        var descriptor = new OpenIddictApplicationDescriptor
         {
-            descriptor.ClientId = WindowsClientId;
-            descriptor.DisplayName = "HRMobile Windows Application";
-            descriptor.ClientType =
-                OpenIddictConstants.ClientTypes.Public;
-            descriptor.ConsentType =
-                OpenIddictConstants.ConsentTypes.Explicit;
-        }
+            ClientId = clientId,
+            DisplayName = "AuthServer P1 Windows Application",
+            ClientType = OpenIddictConstants.ClientTypes.Public,
+            ConsentType = OpenIddictConstants.ConsentTypes.Explicit
+        };
 
         // Configure the Windows callback.
         descriptor.RedirectUris.Clear();
-        descriptor.RedirectUris.Add(WindowsRedirectUri);
+        descriptor.RedirectUris.Add(new(_conf.SignIn_RedirectUri));
+
+        descriptor.PostLogoutRedirectUris.Clear();
+        descriptor.PostLogoutRedirectUris.Add(new(_conf.SignOut_RedirectUri));
 
         // Authorization Code Flow.
         descriptor.Permissions.Add(
@@ -46,6 +51,9 @@ public static class OpenIddictSeeder_Windows
 
         descriptor.Permissions.Add(
             OpenIddictConstants.Permissions.Endpoints.Token);
+
+        descriptor.Permissions.Add(
+            OpenIddictConstants.Permissions.Endpoints.EndSession);
 
         descriptor.Permissions.Add(
             OpenIddictConstants.Permissions.GrantTypes.AuthorizationCode);
@@ -68,13 +76,7 @@ public static class OpenIddictSeeder_Windows
             OpenIddictConstants.Requirements.Features
                 .ProofKeyForCodeExchange);
 
-        if (application is null)
-        {
-            await manager.CreateAsync(descriptor);
-        }
-        else
-        {
-            await manager.UpdateAsync(application, descriptor);
-        }
+
+        await manager.CreateAsync(descriptor);
     }
 }

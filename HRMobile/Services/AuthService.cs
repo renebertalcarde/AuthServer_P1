@@ -106,21 +106,14 @@ public sealed class AuthService(
 
     public async Task LogoutAsync()
     {
+        var url = $"{_oAuthConfiguration.EndSessionEndpoint}?redirect_uri={_oAuthConfiguration.SignOut_RedirectUri}";
+        await _platformAuthBrowser.AuthenticateAsync(new Uri(url), new Uri(_oAuthConfiguration.SignOut_RedirectUri));
+
         SecureStorage.Default.Remove("AccessTokenKey");
         SecureStorage.Default.Remove("RefreshTokenKey");
         SecureStorage.Default.Remove("IdTokenKey");
         _tokens = null;
         IdentityChanged?.Invoke(this, new(null));
-
-        var logoutUrl =
-            $"{_oAuthConfiguration.EndSessionEndpoint}" +
-            $"?client_id={_oAuthConfiguration.ClientId}" +
-            $"&id_token_hint={Uri.EscapeDataString(_tokens?.IdToken ?? "")}" +
-            $"&post_logout_redirect_uri={Uri.EscapeDataString(_oAuthConfiguration.SignOut_RedirectUri)}";
-        
-        await _platformAuthBrowser.AuthenticateAsync(
-              new Uri(logoutUrl),
-              new Uri(_oAuthConfiguration.SignOut_RedirectUri));
     }
 
     private static string CreateRandomValue() =>

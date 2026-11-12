@@ -1,16 +1,18 @@
 ﻿@model AuthServer.Models.LogoutViewModel
 @{
-    ViewData["Title"] = "Sign out";
+    ViewData["Title"] = "Sign-out";
 }
 
-<h2>Sign out</h2>
+<h2>Sign-out</h2>
 
 <p>Do you want to sign out of your account?</p>
 
 <form asp-controller="Account"
-      asp-action="Logout"
+      asp-action="ConfirmLogout"
       method="post">
     @Html.AntiForgeryToken()
+
+    @Html.HiddenFor(x => x.ReturnUrl)
 
     <div asp-validation-summary="All"
          class="text-danger mb-3"
@@ -18,5 +20,5 @@
     </div>
 
 
-    <button type="submit">Sign out</button>
+    <button type="submit">Sign-out</button>
 </form>

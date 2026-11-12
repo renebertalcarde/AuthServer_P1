@@ -1,7 +1,7 @@
 <Solution>
   <Project Path="AuthServer.csproj" />
   <Project Path="HRMobile/HRMobile.csproj">
-    <Deploy Solution="Debug|*" />
+    <Deploy />
   </Project>
   <Project Path="SharedLib/SharedLib.csproj" />
 </Solution>

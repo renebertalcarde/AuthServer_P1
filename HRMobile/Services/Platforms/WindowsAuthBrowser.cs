@@ -1,3 +1,5 @@
+using System.Net;
+
 namespace HRMobile.Services.Platforms;
 
 public sealed class WindowsAuthBrowser : IPlatformAuthBrowser
@@ -13,7 +15,7 @@ public sealed class WindowsAuthBrowser : IPlatformAuthBrowser
         return ret;
     }
 
-    //public async Task<IDictionary<string, string>> AuthenticateAsync(
+    //public async Task<Dictionary<string, string>> Custom_AuthenticateAsync(
     //    Uri url,
     //    Uri callbackUri,
     //    CancellationToken cancellationToken = default)

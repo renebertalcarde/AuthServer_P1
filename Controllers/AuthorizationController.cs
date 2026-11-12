@@ -1,11 +1,13 @@
 using AuthServer.Models;
 using AuthServer.Persistence;
 using Microsoft.AspNetCore;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using OpenIddict.Abstractions;
 using OpenIddict.Server.AspNetCore;
+using System.Security.Claims;
 
 namespace AuthServer.Controllers;
 
@@ -55,14 +57,33 @@ public sealed class AuthorizationController : Controller
                     item.IsActive &&
                     item.Company.IsActive)
             : null;
-
         if (membership is null)
         {
-            var returnUrl = $"{Request.Path}{Request.QueryString}";
-            return RedirectToAction(
-                nameof(AccountController.SelectCompany),
-                "Account",
-                new { returnUrl });
+            var companies = await _dbContext.UserCompanies
+               .Where(m =>
+                   m.UserId == userId &&
+                   m.IsActive &&
+                   m.Company.IsActive)
+               .OrderBy(m => m.Company.Name)
+               .Select(m => new CompanyOptionViewModel
+               {
+                   Id = m.CompanyId,
+                   Name = m.Company.Name,
+                   Code = m.Company.Code
+               })
+               .ToListAsync();
+
+            var authentication = await HttpContext.AuthenticateAsync(IdentityConstants.ApplicationScheme);
+            var isPersistent = authentication.Properties?.IsPersistent ?? false;
+            await _signInManager.SignInWithClaimsAsync(
+                user,
+                isPersistent,
+                [
+                    new Claim("tenant_id", companies[0].Id.ToString()),
+                    new Claim("tenant_code", companies[0].Code)
+                ]);
+            var reloadUrl = $"{Request.Path}{Request.QueryString}";
+            return Redirect(reloadUrl);
         }
 
         var principal = await _signInManager.CreateUserPrincipalAsync(user);
@@ -134,6 +155,7 @@ public sealed class AuthorizationController : Controller
 
         return SignIn(
             principal,
+           // new AuthenticationProperties { RedirectUri = Request.Query["redirect_uri"] },
             OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
     }
 }

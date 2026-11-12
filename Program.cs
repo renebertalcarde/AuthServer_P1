@@ -98,13 +98,4 @@ app.MapControllers();
 app.MapDefaultControllerRoute();
 app.MapRazorPages();
 
-// OpenIddict logout endpoint
-app.MapPost("/connect/logout", async (
-    HttpContext context,
-    SignInManager<IdentityUser> signInManager) =>
-{
-    await signInManager.SignOutAsync();
-
-    return Results.Ok();
-});
 app.Run();

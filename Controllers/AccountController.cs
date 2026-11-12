@@ -1,30 +1,13 @@
-using System.Security.Claims;
 using AuthServer.Models;
-using AuthServer.Persistence;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using SharedLib.OAuthConfiguration;
 
 namespace AuthServer.Controllers;
 
 [Route("account")]
-public sealed class AccountController : Controller
+public sealed class AccountController(SignInManager<IdentityUser> signInManager) : Controller
 {
-    private readonly SignInManager<IdentityUser> _signInManager;
-    private readonly UserManager<IdentityUser> _userManager;
-    private readonly AuthDbContext _dbContext;
-
-    public AccountController(
-        SignInManager<IdentityUser> signInManager,
-        UserManager<IdentityUser> userManager,
-        AuthDbContext dbContext)
-    {
-        _signInManager = signInManager;
-        _userManager = userManager;
-        _dbContext = dbContext;
-    }
+    private readonly SignInManager<IdentityUser> _signInManager = signInManager;
 
     [HttpGet("login")]
     public IActionResult Login(string? returnUrl = null)
@@ -56,7 +39,7 @@ public sealed class AccountController : Controller
                 if (!string.IsNullOrWhiteSpace(model.ReturnUrl) &&
                     Url.IsLocalUrl(model.ReturnUrl))
                 {
-                    return Redirect(model.ReturnUrl);
+                    return Redirect(model.ReturnUrl);                    
                 }
 
                 return RedirectToAction("Index", "Home");
@@ -85,127 +68,17 @@ public sealed class AccountController : Controller
         return View(model);
     }
 
-    [HttpGet("select-company")]
-    [Microsoft.AspNetCore.Authorization.Authorize]
-    public async Task<IActionResult> SelectCompany(string? returnUrl = null)
-    {
-        var model = await BuildCompanySelectionModelAsync();
-        if (model.Companies.Count == 1)
-        {
-            // If the user has only one company, automatically select it.
-            model.CompanyId = model.Companies[0].Id;
-            model.ReturnUrl = returnUrl;
-            return await SelectCompany(model);
-        }
-
-        model.ReturnUrl = IsLocalReturnUrl(returnUrl) ? returnUrl : null;
-
-        return View("SelectCompany", model);
-    }
-
-    [HttpPost("select-company")]
-    [Microsoft.AspNetCore.Authorization.Authorize]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> SelectCompany(CompanySelectionViewModel model)
-    {
-        var user = await _userManager.GetUserAsync(User);
-        if (user is null)
-        {
-            return Challenge(IdentityConstants.ApplicationScheme);
-        }
-
-        if (!ModelState.IsValid)
-        {
-            var returnUrl = model.ReturnUrl;
-            model = await BuildCompanySelectionModelAsync();
-            model.ReturnUrl = IsLocalReturnUrl(returnUrl) ? returnUrl : null;
-            return View("SelectCompany", model);
-        }
-
-        var userId = await _userManager.GetUserIdAsync(user);
-        var membership = await _dbContext.UserCompanies
-            .Include(item => item.Company)
-            .SingleOrDefaultAsync(item =>
-                item.UserId == userId &&
-                item.CompanyId == model.CompanyId &&
-                item.IsActive &&
-                item.Company.IsActive);
-
-        if (membership is null)
-        {
-            ModelState.AddModelError(
-                nameof(model.CompanyId),
-                "That company is not available to your account.");
-
-            var invalidModel = await BuildCompanySelectionModelAsync();
-            invalidModel.ReturnUrl = IsLocalReturnUrl(model.ReturnUrl) ? model.ReturnUrl : null;
-            return View("SelectCompany", invalidModel);
-        }
-
-        // Preserve the current cookie's persistence setting while replacing
-        // its tenant context with a membership validated against the database.
-        var authentication = await HttpContext.AuthenticateAsync(
-            IdentityConstants.ApplicationScheme);
-        var isPersistent = authentication.Properties?.IsPersistent ?? false;
-
-        await _signInManager.SignInWithClaimsAsync(
-            user,
-            isPersistent,
-            [
-                new Claim("tenant_id", membership.CompanyId.ToString()),
-                new Claim("tenant_code", membership.Company.Code)
-            ]);
-
-        if (IsLocalReturnUrl(model.ReturnUrl))
-        {
-            return Redirect(model.ReturnUrl!);
-        }
-
-        return RedirectToAction("Index", "Home");
-    }
-
     [HttpGet("logout")]
+    public async Task<IActionResult> Logout(string redirect_uri)
+    {
+        return View(new LogoutViewModel { ReturnUrl = redirect_uri });
+    }
+
     [HttpPost("logout")]
-    public async Task<IActionResult> Logout(string post_logout_redirect_uri)
+    public async Task<IActionResult> ConfirmLogout(LogoutViewModel model)
     {
         await _signInManager.SignOutAsync();
-
-        return SignOut(
-            new AuthenticationProperties
-            {
-                RedirectUri = post_logout_redirect_uri
-            },
-            IdentityConstants.ApplicationScheme);
+        return View();
     }
 
-    private async Task<CompanySelectionViewModel> BuildCompanySelectionModelAsync()
-    {
-        var userId = _userManager.GetUserId(User);
-        if (string.IsNullOrWhiteSpace(userId))
-        {
-            return new CompanySelectionViewModel();
-        }
-
-        var companies = await _dbContext.UserCompanies
-            .Where(membership =>
-                membership.UserId == userId &&
-                membership.IsActive &&
-                membership.Company.IsActive)
-            .OrderBy(membership => membership.Company.Name)
-            .Select(membership => new CompanyOptionViewModel
-            {
-                Id = membership.CompanyId,
-                Name = membership.Company.Name,
-                Code = membership.Company.Code
-            })
-            .ToListAsync();
-
-        return new CompanySelectionViewModel
-        {
-            Companies = companies
-        };
-    }
-
-    private bool IsLocalReturnUrl(string? returnUrl) =>
-        !string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl);
 }
